@@ -1,3 +1,10 @@
+import Link from "next/link";
+import { signOut } from "@/auth";
+import { requirePermission } from "@/lib/auth/guards";
+import { roleLabels } from "@/lib/auth/roles";
+
+export const instant = false;
+
 const indicators = [
   {
     label: "Plastique collecté",
@@ -32,7 +39,9 @@ const stages = [
   { number: "04", label: "Ventes", description: "Vendre et encaisser" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const user = await requirePermission("dashboard:read");
+
   return (
     <main className="min-h-screen px-4 py-5 sm:px-8 sm:py-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
@@ -50,16 +59,43 @@ export default function Home() {
               </span>
             </span>
           </a>
-          <nav aria-label="Navigation principale" className="flex items-center gap-2">
+          <nav
+            aria-label="Navigation principale"
+            className="flex flex-wrap items-center gap-2"
+          >
             <a
               className="rounded-xl bg-[#edf5ef] px-4 py-3 text-sm font-semibold text-[#205d39]"
               href="#accueil"
             >
               Tableau de bord
             </a>
-            <span className="rounded-xl px-4 py-3 text-sm text-[#77847b]">
+            <span className="px-2 text-sm text-[#65736a]">
+              {user.displayName} · {roleLabels[user.role]}
+            </span>
+            {user.role === "administrateur" ? (
+              <Link
+                className="rounded-xl px-4 py-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"
+                href="/utilisateurs"
+              >
+                Utilisateurs
+              </Link>
+            ) : null}
+            <span className="rounded-xl px-3 py-3 text-sm text-[#77847b]">
               XAF · FCFA
             </span>
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/connexion" });
+              }}
+            >
+              <button
+                className="min-h-11 rounded-xl border border-[#d9e4da] px-4 py-2 text-sm font-semibold text-[#526258] hover:bg-[#f6f9f6]"
+                type="submit"
+              >
+                Se déconnecter
+              </button>
+            </form>
           </nav>
         </header>
 
@@ -91,7 +127,10 @@ export default function Home() {
               seul espace.
             </p>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-medium text-[#e5f1e8]">
-              <span aria-hidden="true" className="size-2 rounded-full bg-[#a9d9a7]" />
+              <span
+                aria-hidden="true"
+                className="size-2 rounded-full bg-[#a9d9a7]"
+              />
               Application initialisée · Données en attente
             </div>
           </div>
@@ -100,7 +139,10 @@ export default function Home() {
         <section aria-labelledby="indicators-title">
           <div className="mb-3 flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-[#193b29]" id="indicators-title">
+              <h2
+                className="text-lg font-semibold text-[#193b29]"
+                id="indicators-title"
+              >
                 Vue d’ensemble
               </h2>
               <p className="mt-1 text-sm text-[#758178]">
@@ -142,7 +184,10 @@ export default function Home() {
           className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7"
         >
           <div className="mb-5">
-            <h2 className="text-lg font-semibold text-[#193b29]" id="chain-title">
+            <h2
+              className="text-lg font-semibold text-[#193b29]"
+              id="chain-title"
+            >
               Votre chaîne de valorisation
             </h2>
             <p className="mt-1 text-sm text-[#758178]">

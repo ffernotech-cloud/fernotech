@@ -14,7 +14,7 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
   versionnées.
 - Auth.js avec identifiant et mot de passe haché.
 - Recharts pour les graphiques, Vitest pour les calculs critiques.
-- Deploiement Vercel; ne jamais utiliser SQLite en production.
+- Déploiement Vercel; ne jamais utiliser SQLite en production.
 
 ## Règles métier non négociables
 
@@ -52,24 +52,33 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
   `.env`.
 - Les migrations de base sont versionnées; les changements de schéma passent
   par Drizzle.
+- Auth.js utilise des sessions JWT pour Credentials; ne pas ajouter de session
+  SQLite ni de mot de passe en clair.
+- Les actions et pages protégées vérifient leurs permissions côté serveur.
+- Toute création ou modification de compte est enregistrée dans `audit_logs`.
+- Le dernier administrateur actif et le compte de l'administrateur courant ne
+  peuvent pas être désactivés ou rétrogradés.
 
 ## Commandes
 
-Commandes disponibles a l'initialisation :
+Commandes disponibles :
 
 ```bash
 npm run dev
 npm run lint
 npm run build
-```
-
-Quand les outils correspondants seront ajoutés aux étapes suivantes :
-
-```bash
+npm test
 npm run db:generate
 npm run db:migrate
-npm run db:seed
-npm run test
+npm run admin:create
+```
+
+Pour initialiser une base Neon et le premier compte dans un terminal sécurisé :
+
+```bash
+npx vercel env pull .env.local --environment production
+npm run db:migrate
+npm run admin:create
 ```
 
 Avant de terminer une étape, lancer au minimum le lint, le build et les tests
