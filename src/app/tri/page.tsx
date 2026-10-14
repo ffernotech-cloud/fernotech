@@ -12,7 +12,7 @@ import { availableMaterialKg } from "@/lib/sorting/calculations";
 
 export const instant = false;
 
-const stockBalance = sql<string>`
+const stockBalanceValue = sql<string>`
   coalesce(
     sum(
       case
@@ -23,7 +23,8 @@ const stockBalance = sql<string>`
     ),
     0
   )::text
-`.as("stock_balance");
+`;
+const stockBalance = sql<string>`${stockBalanceValue}`.as("stock_balance");
 
 export default async function SortingPage() {
   await requirePermission("sorting:manage");
@@ -53,7 +54,7 @@ export default async function SortingPage() {
       })
       .from(materialStockMovements)
       .groupBy(materialStockMovements.plasticType)
-      .having(sql`(${stockBalance})::numeric <> 0`)
+      .having(sql`(${stockBalanceValue})::numeric <> 0`)
       .orderBy(asc(materialStockMovements.plasticType)),
     database
       .select({
