@@ -109,6 +109,21 @@ le stock : il faudra l’accepter au tri avant de créer un mouvement de matièr
 Les créations et modifications sont consignées avec l’auteur dans
 `audit_logs`.
 
+## Module Tri et stock matière
+
+Les rôles Administrateur et Responsable d’atelier accèdent à `/tri`. Le type
+de plastique est saisi librement lors de l’enregistrement d’un apport (PET,
+PEHD, sachets, autres ou toute nouvelle catégorie). Pour chaque apport reçu,
+le poids accepté et rejeté doit totaliser exactement le poids reçu, au gramme
+près; tout rejet exige un motif.
+
+Le tri et l’intégration sont deux étapes explicites. L’intégration du poids
+accepté, la clôture de l’apport et l’écriture de l’audit sont atomiques. Le
+stock disponible est calculé depuis `material_stock_movements`, jamais saisi
+manuellement. Un apport entièrement rejeté peut être clôturé sans créer
+d’entrée de stock. Les mouvements restent rattachés à leur apport et à
+l’utilisateur qui les a enregistrés.
+
 ## Principes du projet
 
 - L'interface et les messages utilisateurs sont en français.

@@ -25,6 +25,10 @@ describe("permissions des rôles", () => {
     expect(roleHasPermission("responsable_atelier", "collectors:manage")).toBe(
       true,
     );
+    expect(roleHasPermission("responsable_atelier", "sorting:manage")).toBe(
+      true,
+    );
+    expect(roleHasPermission("administrateur", "sorting:manage")).toBe(true);
     expect(roleHasPermission("responsable_atelier", "production:manage")).toBe(
       true,
     );

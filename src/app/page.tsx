@@ -81,6 +81,14 @@ export default async function Home() {
                 Collecteurs
               </Link>
             ) : null}
+            {roleHasPermission(user.role, "sorting:manage") ? (
+              <Link
+                className="rounded-xl px-4 py-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"
+                href="/tri"
+              >
+                Tri et stock matière
+              </Link>
+            ) : null}
             {user.role === "administrateur" ? (
               <Link
                 className="rounded-xl px-4 py-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"

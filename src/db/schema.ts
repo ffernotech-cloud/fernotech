@@ -29,6 +29,11 @@ export const deliveryStatus = pgEnum("delivery_status", [
   "integree_au_stock",
 ]);
 
+export const materialMovementType = pgEnum("material_movement_type", [
+  "entree",
+  "sortie",
+]);
+
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   identifier: varchar("identifier", { length: 32 }).notNull().unique(),
@@ -84,7 +89,38 @@ export const deliveries = pgTable("deliveries", {
     "deliveries_sort_balance",
     sql`(${table.status} = 'recue' AND ${table.acceptedKg} IS NULL AND ${table.rejectedKg} IS NULL) OR (${table.status} IN ('triee', 'integree_au_stock') AND ${table.acceptedKg} IS NOT NULL AND ${table.rejectedKg} IS NOT NULL AND ${table.acceptedKg} >= 0 AND ${table.rejectedKg} >= 0 AND ${table.acceptedKg} + ${table.rejectedKg} = ${table.receivedKg})`,
   ),
+  check(
+    "deliveries_rejection_reason",
+    sql`${table.rejectedKg} IS NULL OR ${table.rejectedKg} = 0 OR ${table.rejectionReason} IS NOT NULL`,
+  ),
 ]);
+
+export const materialStockMovements = pgTable(
+  "material_stock_movements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    plasticType: varchar("plastic_type", { length: 80 }).notNull(),
+    movementType: materialMovementType("movement_type").notNull(),
+    quantityKg: numeric("quantity_kg", { precision: 10, scale: 3 }).notNull(),
+    deliveryId: uuid("delivery_id").references(() => deliveries.id, {
+      onDelete: "restrict",
+    }).unique(),
+    reason: text("reason"),
+    actorId: uuid("actor_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("material_movements_quantity_positive", sql`${table.quantityKg} > 0`),
+    check(
+      "material_movements_delivery_is_inbound",
+      sql`${table.deliveryId} IS NULL OR ${table.movementType} = 'entree'`,
+    ),
+  ],
+);
 
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").defaultRandom().primaryKey(),

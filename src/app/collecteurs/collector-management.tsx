@@ -12,6 +12,7 @@ import {
   type CollectorType,
 } from "@/lib/auth/roles";
 import { acceptanceRate, kilogramsLabel } from "@/lib/collectors/metrics";
+import { defaultPlasticTypes } from "@/lib/sorting/plastic-types";
 import type { CollectorActionState } from "@/lib/collectors/validation";
 
 type CollectorSummary = {
@@ -225,11 +226,17 @@ function RecordDeliveryForm({
         <input
           className={fieldClass}
           id="delivery-plastic"
+          list="plastic-types"
           maxLength={80}
           name="plasticType"
           placeholder="PET, PEHD, sachets…"
           required
         />
+        <datalist id="plastic-types">
+          {defaultPlasticTypes.map((plasticType) => (
+            <option key={plasticType} value={plasticType} />
+          ))}
+        </datalist>
       </div>
       <div className="sm:col-span-2">
         <label className={labelClass} htmlFor="delivery-weight">

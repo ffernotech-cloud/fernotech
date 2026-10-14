@@ -37,6 +37,8 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
    erreur sous un resultat de succes.
 10. Un apport au statut « reçu » n'alimente pas le stock; seul le poids accepté
     au tri pourra créer le mouvement d'entrée correspondant.
+11. Le bilan du tri doit correspondre exactement au poids reçu, au gramme près;
+    l'intégration du poids accepté et le mouvement de stock sont atomiques.
 
 ## Conventions
 
@@ -62,6 +64,8 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
   supprimées physiquement.
 - Les créations et modifications des collecteurs et apports sont auditées dans
   la même transaction que l'enregistrement métier.
+- Le stock matière est toujours calculé depuis `material_stock_movements`;
+  aucune action ne saisit directement un solde.
 - Le dernier administrateur actif et le compte de l'administrateur courant ne
   peuvent pas être désactivés ou rétrogradés.
 
