@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   date,
+  integer,
   jsonb,
   numeric,
   pgEnum,
@@ -33,6 +34,11 @@ export const materialMovementType = pgEnum("material_movement_type", [
   "entree",
   "sortie",
 ]);
+
+export const finishedProductMovementType = pgEnum(
+  "finished_product_movement_type",
+  ["entree", "sortie"],
+);
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -95,6 +101,65 @@ export const deliveries = pgTable("deliveries", {
   ),
 ]);
 
+export const productionOrders = pgTable(
+  "production_orders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    productionDate: date("production_date").notNull(),
+    supervisorId: uuid("supervisor_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    plasticType: varchar("plastic_type", { length: 80 }).notNull(),
+    materialUsedKg: numeric("material_used_kg", {
+      precision: 10,
+      scale: 3,
+    }).notNull(),
+    bandsPreparedKg: numeric("bands_prepared_kg", {
+      precision: 10,
+      scale: 3,
+    }).notNull(),
+    broomsProduced: integer("brooms_produced").notNull(),
+    lossKg: numeric("loss_kg", { precision: 10, scale: 3 }).notNull(),
+    lossReason: text("loss_reason"),
+    materialCostPerKg: numeric("material_cost_per_kg", {
+      precision: 14,
+      scale: 2,
+    }).notNull(),
+    laborCost: numeric("labor_cost", { precision: 14, scale: 2 }).notNull(),
+    energyCost: numeric("energy_cost", { precision: 14, scale: 2 }).notNull(),
+    accessoriesCost: numeric("accessories_cost", {
+      precision: 14,
+      scale: 2,
+    }).notNull(),
+    materialCost: numeric("material_cost", {
+      precision: 14,
+      scale: 2,
+    }).notNull(),
+    totalCost: numeric("total_cost", { precision: 14, scale: 2 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("production_material_used_positive", sql`${table.materialUsedKg} > 0`),
+    check("production_bands_kg_non_negative", sql`${table.bandsPreparedKg} >= 0`),
+    check("production_brooms_positive", sql`${table.broomsProduced} > 0`),
+    check("production_loss_kg_non_negative", sql`${table.lossKg} >= 0`),
+    check(
+      "production_material_balance",
+      sql`${table.materialUsedKg} = ${table.bandsPreparedKg} + ${table.lossKg}`,
+    ),
+    check(
+      "production_loss_reason",
+      sql`${table.lossKg} = 0 OR ${table.lossReason} IS NOT NULL`,
+    ),
+    check(
+      "production_costs_non_negative",
+      sql`${table.materialCostPerKg} >= 0 AND ${table.laborCost} >= 0 AND ${table.energyCost} >= 0 AND ${table.accessoriesCost} >= 0 AND ${table.materialCost} >= 0 AND ${table.totalCost} >= 0`,
+    ),
+  ],
+);
+
 export const materialStockMovements = pgTable(
   "material_stock_movements",
   {
@@ -105,6 +170,9 @@ export const materialStockMovements = pgTable(
     deliveryId: uuid("delivery_id").references(() => deliveries.id, {
       onDelete: "restrict",
     }).unique(),
+    productionOrderId: uuid("production_order_id")
+      .references(() => productionOrders.id, { onDelete: "restrict" })
+      .unique(),
     reason: text("reason"),
     actorId: uuid("actor_id")
       .notNull()
@@ -118,6 +186,40 @@ export const materialStockMovements = pgTable(
     check(
       "material_movements_delivery_is_inbound",
       sql`${table.deliveryId} IS NULL OR ${table.movementType} = 'entree'`,
+    ),
+    check(
+      "material_movements_production_is_outbound",
+      sql`${table.productionOrderId} IS NULL OR ${table.movementType} = 'sortie'`,
+    ),
+    check(
+      "material_movements_single_source",
+      sql`${table.deliveryId} IS NULL OR ${table.productionOrderId} IS NULL`,
+    ),
+  ],
+);
+
+export const finishedProductStockMovements = pgTable(
+  "finished_product_stock_movements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    movementType: finishedProductMovementType("movement_type").notNull(),
+    quantity: integer("quantity").notNull(),
+    productionOrderId: uuid("production_order_id")
+      .references(() => productionOrders.id, { onDelete: "restrict" })
+      .unique(),
+    reason: text("reason"),
+    actorId: uuid("actor_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("finished_product_quantity_positive", sql`${table.quantity} > 0`),
+    check(
+      "finished_product_production_is_inbound",
+      sql`${table.productionOrderId} IS NULL OR ${table.movementType} = 'entree'`,
     ),
   ],
 );

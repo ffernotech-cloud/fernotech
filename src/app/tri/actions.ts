@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDatabase } from "@/db";
 import {
@@ -146,6 +146,9 @@ export async function integrateDelivery(
         };
       }
 
+      await transaction.execute(
+        sql`select pg_advisory_xact_lock(hashtext(${delivery.plasticType}))`,
+      );
       const acceptedKg = Number(delivery.acceptedKg);
       if (acceptedKg > 0) {
         await transaction.insert(materialStockMovements).values({

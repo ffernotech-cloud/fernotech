@@ -39,6 +39,11 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
     au tri pourra créer le mouvement d'entrée correspondant.
 11. Le bilan du tri doit correspondre exactement au poids reçu, au gramme près;
     l'intégration du poids accepté et le mouvement de stock sont atomiques.
+12. Une fabrication consomme le stock matière du type choisi et alimente le
+    stock fini via des mouvements atomiques; le bilan utilisé = bandes + pertes
+    est exact au gramme près.
+13. Le coût matière/kg est saisi à chaque ordre de fabrication et ne doit pas
+    être présenté comme un coût d’achat historique moyen.
 
 ## Conventions
 

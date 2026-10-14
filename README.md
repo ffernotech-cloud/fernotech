@@ -124,6 +124,20 @@ manuellement. Un apport entièrement rejeté peut être clôturé sans créer
 d’entrée de stock. Les mouvements restent rattachés à leur apport et à
 l’utilisateur qui les a enregistrés.
 
+## Module Production
+
+Les rôles Administrateur et Responsable d’atelier peuvent ouvrir
+`/production`. Un ordre de fabrication précise la date, le plastique utilisé,
+les kilos de bandes préparées, le nombre de balais et les pertes. Le bilan
+matière doit correspondre au gramme près; toute perte doit être motivée.
+
+Le stock disponible par type de plastique est calculé depuis les mouvements.
+Si le poids demandé dépasse le solde, la fabrication est refusée. L’ordre, la
+sortie de matière, l’entrée des balais en stock fini et l’audit sont enregistrés
+dans une transaction PostgreSQL. Chaque ordre conserve le coût matière/kg
+saisi pour cette fabrication ainsi que la main-d’œuvre, l’énergie et les
+accessoires; le coût total et le coût par balai en sont calculés.
+
 ## Principes du projet
 
 - L'interface et les messages utilisateurs sont en français.
