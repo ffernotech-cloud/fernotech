@@ -53,7 +53,7 @@ export default async function SortingPage() {
       })
       .from(materialStockMovements)
       .groupBy(materialStockMovements.plasticType)
-      .having(sql`${stockBalance} <> 0`)
+      .having(sql`(${stockBalance})::numeric <> 0`)
       .orderBy(asc(materialStockMovements.plasticType)),
     database
       .select({
