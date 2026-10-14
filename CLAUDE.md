@@ -35,6 +35,8 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
 8. Les opérations sensibles journalisent l'auteur, l'action, l'objet et la date.
 9. Toute erreur utilisateur est expliquée en français; ne pas masquer une
    erreur sous un resultat de succes.
+10. Un apport au statut « reçu » n'alimente pas le stock; seul le poids accepté
+    au tri pourra créer le mouvement d'entrée correspondant.
 
 ## Conventions
 
@@ -56,6 +58,10 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
   SQLite ni de mot de passe en clair.
 - Les actions et pages protégées vérifient leurs permissions côté serveur.
 - Toute création ou modification de compte est enregistrée dans `audit_logs`.
+- Les fiches collecteur restent liées aux livraisons historiques et ne sont pas
+  supprimées physiquement.
+- Les créations et modifications des collecteurs et apports sont auditées dans
+  la même transaction que l'enregistrement métier.
 - Le dernier administrateur actif et le compte de l'administrateur courant ne
   peuvent pas être désactivés ou rétrogradés.
 

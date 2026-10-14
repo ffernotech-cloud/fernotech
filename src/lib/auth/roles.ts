@@ -5,6 +5,20 @@ export const appRoles = [
   "lecteur",
 ] as const;
 
+export const collectorTypes = [
+  "individuel",
+  "association",
+  "groupe",
+] as const;
+
+export type CollectorType = (typeof collectorTypes)[number];
+
+export const collectorTypeLabels: Record<CollectorType, string> = {
+  individuel: "Individuel",
+  association: "Association",
+  groupe: "Groupe",
+};
+
 export type AppRole = (typeof appRoles)[number];
 
 export const roleLabels: Record<AppRole, string> = {

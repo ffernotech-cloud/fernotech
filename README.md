@@ -94,6 +94,21 @@ administrateur actif ne peut pas être supprimé par erreur.
 Les permissions sont contrôlées dans les fonctions serveur, même lorsqu'une
 page ou une action est appelée directement.
 
+## Module Collecteurs
+
+Les rôles Administrateur et Responsable d’atelier peuvent ouvrir
+`/collecteurs` depuis le tableau de bord. Ils peuvent créer et modifier une
+fiche (nom, type, téléphone, zone et notes), puis activer ou désactiver le
+collecteur. Les fiches ne sont pas supprimées afin de préserver l’historique.
+
+Un apport reçu est associé à un collecteur et conserve sa date, son point de
+collecte, son type de plastique et son poids. Les totaux et le classement sont
+calculés depuis les livraisons enregistrées; le taux d’acceptation repose sur
+les poids confirmés à l’étape de tri. Un apport encore « reçu » n’alimente pas
+le stock : il faudra l’accepter au tri avant de créer un mouvement de matière.
+Les créations et modifications sont consignées avec l’auteur dans
+`audit_logs`.
+
 ## Principes du projet
 
 - L'interface et les messages utilisateurs sont en français.

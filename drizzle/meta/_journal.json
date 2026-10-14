@@ -8,6 +8,13 @@
       "when": 1791925403099,
       "tag": "0000_careless_butterfly",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792020000000,
+      "tag": "0001_collector_delivery_registry",
+      "breakpoints": true
     }
   ]
 }

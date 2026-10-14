@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { roleHasPermission } from "@/lib/auth/roles";
 import { signOut } from "@/auth";
 import { requirePermission } from "@/lib/auth/guards";
 import { roleLabels } from "@/lib/auth/roles";
@@ -72,6 +73,14 @@ export default async function Home() {
             <span className="px-2 text-sm text-[#65736a]">
               {user.displayName} · {roleLabels[user.role]}
             </span>
+            {roleHasPermission(user.role, "collectors:manage") ? (
+              <Link
+                className="rounded-xl px-4 py-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"
+                href="/collecteurs"
+              >
+                Collecteurs
+              </Link>
+            ) : null}
             {user.role === "administrateur" ? (
               <Link
                 className="rounded-xl px-4 py-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"
