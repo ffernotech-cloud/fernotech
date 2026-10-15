@@ -3,7 +3,7 @@ import { roleHasPermission } from "@/lib/auth/roles";
 import { signOut } from "@/auth";
 import { requirePermission } from "@/lib/auth/guards";
 import { roleLabels } from "@/lib/auth/roles";
-import { DashboardCharts } from "@/app/dashboard-charts";
+import { DashboardChartsLoader } from "@/app/dashboard-charts-loader";
 import { getDashboardData } from "@/lib/dashboard/data";
 import { resolveDashboardPeriod } from "@/lib/dashboard/period";
 import { CURRENCY_CODE, CURRENCY_LABEL, formatCurrency } from "@/lib/currency";
@@ -358,7 +358,7 @@ export default async function Home({
           </p>
         </section>
 
-        <DashboardCharts data={data.monthly} />
+        <DashboardChartsLoader data={data.monthly} />
 
         <section
           aria-label="Classement des collecteurs et détail du stock matière"
