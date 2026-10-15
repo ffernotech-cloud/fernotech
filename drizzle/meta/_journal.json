@@ -29,6 +29,13 @@
       "when": 1792020806912,
       "tag": "0003_chemical_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792023419042,
+      "tag": "0004_safe_reavers",
+      "breakpoints": true
     }
   ]
 }

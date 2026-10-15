@@ -138,6 +138,21 @@ dans une transaction PostgreSQL. Chaque ordre conserve le coût matière/kg
 saisi pour cette fabrication ainsi que la main-d’œuvre, l’énergie et les
 accessoires; le coût total et le coût par balai en sont calculés.
 
+## Module Stocks, ventes et règlements
+
+Les rôles Administrateur et Commercial/Caissier accèdent à `/ventes` pour
+créer les fiches clients, commandes et encaissements. Une commande doit être
+préparée avant d’être livrée; les commandes en attente ou préparées peuvent
+être annulées sans mouvement de stock.
+
+Une livraison crée la vente, le débit du nombre de balais dans
+`finished_product_stock_movements` et l’entrée d’audit dans une transaction.
+Le débit est bloqué si le stock est insuffisant. Les règlements partiels ou
+totaux sont enregistrés en espèces, Mobile Money ou virement; le système refuse
+tout montant supérieur au solde de la vente et calcule les créances par client.
+Les mouvements d’entrée issus de la production et les sorties issues des
+ventes constituent l’unique source du stock de produits finis.
+
 ## Principes du projet
 
 - L'interface et les messages utilisateurs sont en français.

@@ -37,6 +37,7 @@ export const permissions = [
   "materials:read",
   "products:read",
   "sales:manage",
+  "customers:manage",
   "users:manage",
 ] as const;
 
@@ -57,6 +58,7 @@ const permissionsByRole: Record<AppRole, readonly Permission[]> = {
     "dashboard:read",
     "products:read",
     "sales:manage",
+    "customers:manage",
   ],
   lecteur: ["dashboard:read"],
 };

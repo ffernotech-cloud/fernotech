@@ -42,6 +42,9 @@ describe("permissions des rôles", () => {
 
   it("limite le commercial aux ventes et à la lecture du stock de produits finis", () => {
     expect(roleHasPermission("commercial_caissier", "sales:manage")).toBe(true);
+    expect(roleHasPermission("commercial_caissier", "customers:manage")).toBe(
+      true,
+    );
     expect(roleHasPermission("commercial_caissier", "products:read")).toBe(
       true,
     );
@@ -58,8 +61,12 @@ describe("permissions des rôles", () => {
     expect(roleHasPermission("responsable_atelier", "users:manage")).toBe(
       false,
     );
+    expect(roleHasPermission("responsable_atelier", "customers:manage")).toBe(
+      false,
+    );
     expect(roleHasPermission("commercial_caissier", "users:manage")).toBe(
       false,
     );
+    expect(roleHasPermission("lecteur", "customers:manage")).toBe(false);
   });
 });

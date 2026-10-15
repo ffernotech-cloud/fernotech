@@ -40,6 +40,19 @@ export const finishedProductMovementType = pgEnum(
   ["entree", "sortie"],
 );
 
+export const salesOrderStatus = pgEnum("sales_order_status", [
+  "en_attente",
+  "preparee",
+  "livree",
+  "annulee",
+]);
+
+export const paymentMethod = pgEnum("payment_method", [
+  "especes",
+  "mobile_money",
+  "virement",
+]);
+
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   identifier: varchar("identifier", { length: 32 }).notNull().unique(),
@@ -198,6 +211,80 @@ export const materialStockMovements = pgTable(
   ],
 );
 
+export const customers = pgTable("customers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 120 }).notNull(),
+  phone: varchar("phone", { length: 40 }),
+  address: varchar("address", { length: 200 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const salesOrders = pgTable(
+  "sales_orders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "restrict" }),
+    orderDate: date("order_date").notNull(),
+    status: salesOrderStatus("status").notNull().default("en_attente"),
+    quantity: integer("quantity").notNull(),
+    unitPrice: numeric("unit_price", { precision: 14, scale: 2 }).notNull(),
+    totalAmount: numeric("total_amount", { precision: 14, scale: 2 }).notNull(),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("sales_order_quantity_positive", sql`${table.quantity} > 0`),
+    check(
+      "sales_order_prices_non_negative",
+      sql`${table.unitPrice} >= 0 AND ${table.totalAmount} >= 0`,
+    ),
+    check(
+      "sales_order_total_matches_quantity",
+      sql`${table.totalAmount} = ${table.quantity} * ${table.unitPrice}`,
+    ),
+  ],
+);
+
+export const sales = pgTable(
+  "sales",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => salesOrders.id, { onDelete: "restrict" })
+      .unique(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "restrict" }),
+    saleDate: date("sale_date").notNull(),
+    quantity: integer("quantity").notNull(),
+    unitPrice: numeric("unit_price", { precision: 14, scale: 2 }).notNull(),
+    totalAmount: numeric("total_amount", { precision: 14, scale: 2 }).notNull(),
+    actorId: uuid("actor_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("sales_quantity_positive", sql`${table.quantity} > 0`),
+    check(
+      "sales_prices_non_negative",
+      sql`${table.unitPrice} >= 0 AND ${table.totalAmount} >= 0`,
+    ),
+  ],
+);
+
 export const finishedProductStockMovements = pgTable(
   "finished_product_stock_movements",
   {
@@ -206,6 +293,9 @@ export const finishedProductStockMovements = pgTable(
     quantity: integer("quantity").notNull(),
     productionOrderId: uuid("production_order_id")
       .references(() => productionOrders.id, { onDelete: "restrict" })
+      .unique(),
+    saleId: uuid("sale_id")
+      .references(() => sales.id, { onDelete: "restrict" })
       .unique(),
     reason: text("reason"),
     actorId: uuid("actor_id")
@@ -221,6 +311,37 @@ export const finishedProductStockMovements = pgTable(
       "finished_product_production_is_inbound",
       sql`${table.productionOrderId} IS NULL OR ${table.movementType} = 'entree'`,
     ),
+    check(
+      "finished_product_sale_is_outbound",
+      sql`${table.saleId} IS NULL OR ${table.movementType} = 'sortie'`,
+    ),
+    check(
+      "finished_product_movement_single_source",
+      sql`${table.productionOrderId} IS NULL OR ${table.saleId} IS NULL`,
+    ),
+  ],
+);
+
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    saleId: uuid("sale_id")
+      .notNull()
+      .references(() => sales.id, { onDelete: "restrict" }),
+    amount: numeric("amount", { precision: 14, scale: 2 }).notNull(),
+    method: paymentMethod("method").notNull(),
+    paidAt: date("paid_at").notNull(),
+    reference: varchar("reference", { length: 120 }),
+    actorId: uuid("actor_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("payment_amount_positive", sql`${table.amount} > 0`),
   ],
 );
 

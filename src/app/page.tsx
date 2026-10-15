@@ -97,6 +97,14 @@ export default async function Home() {
                 Production
               </Link>
             ) : null}
+            {roleHasPermission(user.role, "sales:manage") ? (
+              <Link
+                className="rounded-xl px-4 py-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"
+                href="/ventes"
+              >
+                Ventes et règlements
+              </Link>
+            ) : null}
             {user.role === "administrateur" ? (
               <Link
                 className="rounded-xl px-4 py-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"

@@ -44,6 +44,12 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
     est exact au gramme près.
 13. Le coût matière/kg est saisi à chaque ordre de fabrication et ne doit pas
     être présenté comme un coût d’achat historique moyen.
+14. Le stock de produits finis est calculé depuis les mouvements: la production
+    enregistre une entrée et chaque livraison vendue une sortie atomiquement.
+15. Une commande en attente ou préparée ne débite pas le stock; le débit et la
+    création de la vente sont atomiques lors de la livraison.
+16. Les règlements cumulés d’une vente ne peuvent pas dépasser son montant;
+    toute évolution commerciale ou financière est auditée.
 
 ## Conventions
 
