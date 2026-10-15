@@ -5,6 +5,7 @@ import { collectors, deliveries } from "@/db/schema";
 import { requirePermission } from "@/lib/auth/guards";
 import { CollectorManagement } from "@/app/collecteurs/collector-management";
 import { acceptanceRate } from "@/lib/collectors/metrics";
+import { ExportLink } from "@/components/export-link";
 
 export const instant = false;
 
@@ -94,12 +95,17 @@ export default async function CollectorsPage() {
               plastiques, puis consultez leurs livraisons et leur classement.
             </p>
           </div>
-          <Link
-            className="inline-flex min-h-11 items-center rounded-xl border border-[#d9e4da] bg-white px-4 py-2 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"
-            href="/"
-          >
-            Retour au tableau de bord
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <ExportLink href="/api/exports/collecteurs">
+              Exporter les collecteurs (CSV/Excel)
+            </ExportLink>
+            <Link
+              className="inline-flex min-h-11 items-center rounded-xl border border-[#d9e4da] bg-white px-4 py-2 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"
+              href="/"
+            >
+              Retour au tableau de bord
+            </Link>
+          </div>
         </header>
 
         <section

@@ -9,6 +9,7 @@ import {
 import { requirePermission } from "@/lib/auth/guards";
 import { MaterialSorting } from "@/app/tri/material-sorting";
 import { availableMaterialKg } from "@/lib/sorting/calculations";
+import { ExportLink } from "@/components/export-link";
 
 export const instant = false;
 
@@ -106,6 +107,12 @@ export default async function SortingPage() {
               Pesez les matières acceptées et rejetées. Seul le poids accepté
               peut entrer dans le stock.
             </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <ExportLink href="/api/exports/tri">Exporter le tri (CSV/Excel)</ExportLink>
+            <ExportLink href="/api/exports/stock-matiere">
+              Exporter les mouvements matière
+            </ExportLink>
           </div>
         </header>
 

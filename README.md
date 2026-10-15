@@ -106,6 +106,19 @@ les mouvements, et les créances ouvertes incluent toutes les ventes. La marge
 est une estimation fondée sur le coût moyen historique des balais produits,
 car les ventes ne sont pas reliées à un ordre de fabrication précis.
 
+## Exports et application mobile
+
+Les pages Collecteurs, Tri, Production et Ventes proposent des exports CSV
+compatibles avec Excel. Les exports sont réservés aux rôles autorisés et ne sont
+pas mis en cache. Le rapport de production peut être imprimé ou enregistré en
+PDF. L’application est installable depuis le menu du navigateur; le mode hors
+connexion affiche uniquement une page d’information et ne synchronise aucune
+saisie.
+
+Consulter le [guide utilisateur](./docs/guide-utilisateur.md) ou le
+[guide d’installation](./docs/guide-installation.md) pour les instructions
+détaillées.
+
 ## Module Collecteurs
 
 Les rôles Administrateur et Responsable d’atelier peuvent ouvrir

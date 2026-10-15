@@ -10,6 +10,7 @@ import {
 import { requirePermission } from "@/lib/auth/guards";
 import { availableMaterialKg } from "@/lib/sorting/calculations";
 import { ProductionManagement } from "@/app/production/production-management";
+import { ExportLink } from "@/components/export-link";
 
 export const instant = false;
 
@@ -112,20 +113,31 @@ export default async function ProductionPage() {
   return (
     <main className="min-h-screen px-4 py-5 sm:px-8 sm:py-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <header>
-          <Link
-            className="text-sm font-semibold text-[#286542] hover:underline"
-            href="/"
-          >
-            ← Tableau de bord
-          </Link>
-          <h1 className="mt-3 text-2xl font-semibold text-[#193b29]">
-            Production
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-[#758178]">
-            Enregistrez les fabrications, contrôlez le bilan matière et suivez
-            les coûts et les balais disponibles.
-          </p>
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <Link
+              className="text-sm font-semibold text-[#286542] hover:underline"
+              href="/"
+            >
+              ← Tableau de bord
+            </Link>
+            <h1 className="mt-3 text-2xl font-semibold text-[#193b29]">
+              Production
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-[#758178]">
+              Enregistrez les fabrications, contrôlez le bilan matière et suivez
+              les coûts et les balais disponibles.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <ExportLink href="/api/exports/production">
+              Exporter la production (CSV/Excel)
+            </ExportLink>
+            <ExportLink href="/api/exports/stock-produits">
+              Mouvements de produits finis
+            </ExportLink>
+            <ExportLink href="/production/rapport">Rapport imprimable / PDF</ExportLink>
+          </div>
         </header>
 
         <ProductionManagement
