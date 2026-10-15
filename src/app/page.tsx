@@ -3,35 +3,12 @@ import { roleHasPermission } from "@/lib/auth/roles";
 import { signOut } from "@/auth";
 import { requirePermission } from "@/lib/auth/guards";
 import { roleLabels } from "@/lib/auth/roles";
+import { DashboardCharts } from "@/app/dashboard-charts";
+import { getDashboardData } from "@/lib/dashboard/data";
+import { resolveDashboardPeriod } from "@/lib/dashboard/period";
+import { CURRENCY_CODE, CURRENCY_LABEL, formatCurrency } from "@/lib/currency";
 
 export const instant = false;
-
-const indicators = [
-  {
-    label: "Plastique collecté",
-    value: "0 kg",
-    detail: "Aucune livraison enregistrée",
-    icon: "↓",
-  },
-  {
-    label: "Matière en stock",
-    value: "0 kg",
-    detail: "Calculée depuis les mouvements",
-    icon: "◈",
-  },
-  {
-    label: "Balais fabriqués",
-    value: "0",
-    detail: "Aucun ordre de fabrication",
-    icon: "⌁",
-  },
-  {
-    label: "Balais vendus",
-    value: "0",
-    detail: "Aucune vente enregistrée",
-    icon: "↗",
-  },
-];
 
 const stages = [
   { number: "01", label: "Collecte", description: "Suivre les apports" },
@@ -40,8 +17,109 @@ const stages = [
   { number: "04", label: "Ventes", description: "Vendre et encaisser" },
 ];
 
-export default async function Home() {
+const kilogramFormat = new Intl.NumberFormat("fr-FR", {
+  maximumFractionDigits: 3,
+});
+const integerFormat = new Intl.NumberFormat("fr-FR");
+
+function kilogramsLabel(value: string | number): string {
+  return `${kilogramFormat.format(Number(value))} kg`;
+}
+
+function displayDate(value: string): string {
+  return value.split("-").reverse().join("/");
+}
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string | string[]; to?: string | string[] }>;
+}) {
   const user = await requirePermission("dashboard:read");
+  const period = resolveDashboardPeriod(await searchParams);
+  const data = await getDashboardData(period.from, period.to);
+  const totalMaterialStockKg = data.materialStock.reduce(
+    (total, stock) => total + stock.quantityKg,
+    0,
+  );
+  const indicators = [
+    {
+      label: "Plastique collecté",
+      value: kilogramsLabel(data.totals.receivedKg),
+      detail: `Accepté ${kilogramsLabel(data.totals.acceptedKg)} · Rejeté ${kilogramsLabel(data.totals.rejectedKg)}`,
+      icon: "↓",
+    },
+    {
+      label: "Matière transformée",
+      value: kilogramsLabel(data.totals.materialUsedKg),
+      detail: `Pertes déclarées : ${kilogramsLabel(data.totals.lossKg)}`,
+      icon: "↻",
+    },
+    {
+      label: "Balais fabriqués",
+      value: integerFormat.format(data.totals.broomsProduced),
+      detail: "Ordres de fabrication de la période",
+      icon: "⌁",
+    },
+    {
+      label: "Balais vendus",
+      value: integerFormat.format(data.totals.broomsSold),
+      detail: "Ventes livrées durant la période",
+      icon: "↗",
+    },
+    {
+      label: "Stock matière",
+      value: kilogramsLabel(totalMaterialStockKg),
+      detail: "Solde calculé depuis tous les mouvements",
+      icon: "◈",
+    },
+    {
+      label: "Stock de balais",
+      value: integerFormat.format(data.finishedProductStock),
+      detail: "Solde calculé depuis tous les mouvements",
+      icon: "▤",
+    },
+    {
+      label: "Coût de production",
+      value: formatCurrency(data.totals.totalProductionCost),
+      detail: "Total des fabrications de la période",
+      icon: "◉",
+    },
+    {
+      label: "Coût moyen par balai",
+      value: data.totals.averageCostPerBroom
+        ? formatCurrency(data.totals.averageCostPerBroom)
+        : "—",
+      detail: "Moyenne pondérée des fabrications de la période",
+      icon: "⌖",
+    },
+    {
+      label: "Recettes",
+      value: formatCurrency(data.totals.revenue),
+      detail: "Montant facturé pour les ventes de la période",
+      icon: "↗",
+    },
+    {
+      label: "Encaissements",
+      value: formatCurrency(data.totals.paymentsCollected),
+      detail: "Règlements reçus pendant la période",
+      icon: "＋",
+    },
+    {
+      label: "Créances ouvertes",
+      value: formatCurrency(data.totals.outstandingReceivables),
+      detail: "Solde restant dû sur toutes les ventes",
+      icon: "…",
+    },
+    {
+      label: "Marge estimée",
+      value: data.totals.estimatedMargin
+        ? formatCurrency(data.totals.estimatedMargin)
+        : "—",
+      detail: "Recettes moins coût moyen historique des balais vendus",
+      icon: "≈",
+    },
+  ];
 
   return (
     <main className="min-h-screen px-4 py-5 sm:px-8 sm:py-8">
@@ -114,7 +192,7 @@ export default async function Home() {
               </Link>
             ) : null}
             <span className="rounded-xl px-3 py-3 text-sm text-[#77847b]">
-              XAF · FCFA
+              {CURRENCY_CODE} · {CURRENCY_LABEL}
             </span>
             <form
               action={async () => {
@@ -131,6 +209,53 @@ export default async function Home() {
             </form>
           </nav>
         </header>
+
+        <section
+          aria-label="Filtrer le tableau de bord par période"
+          className="rounded-2xl border border-[#e3ebe4] bg-white p-4 shadow-sm sm:p-5"
+        >
+          <form
+            action="/"
+            className="flex flex-col gap-3 sm:flex-row sm:items-end"
+            method="get"
+          >
+            <label className="flex flex-1 flex-col gap-2 text-sm font-semibold text-[#314a39]">
+              Du
+              <input
+                className="min-h-12 rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+                name="from"
+                required
+                type="date"
+                defaultValue={period.from}
+              />
+            </label>
+            <label className="flex flex-1 flex-col gap-2 text-sm font-semibold text-[#314a39]">
+              Au
+              <input
+                className="min-h-12 rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+                name="to"
+                required
+                type="date"
+                defaultValue={period.to}
+              />
+            </label>
+            <button
+              className="min-h-12 rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e]"
+              type="submit"
+            >
+              Appliquer la période
+            </button>
+          </form>
+          {period.error ? (
+            <p className="mt-3 text-sm text-[#9a342a]" role="alert">
+              {period.error} La période affichée a été ramenée au mois courant.
+            </p>
+          ) : null}
+          <p className="mt-3 text-xs text-[#758178]">
+            Période affichée : du {displayDate(period.from)} au{" "}
+            {displayDate(period.to)}.
+          </p>
+        </section>
 
         <section
           aria-labelledby="welcome-title"
@@ -164,7 +289,7 @@ export default async function Home() {
                 aria-hidden="true"
                 className="size-2 rounded-full bg-[#a9d9a7]"
               />
-              Application initialisée · Données en attente
+              Données du {displayDate(period.from)} au {displayDate(period.to)}
             </div>
           </div>
         </section>
@@ -179,14 +304,14 @@ export default async function Home() {
                 Vue d’ensemble
               </h2>
               <p className="mt-1 text-sm text-[#758178]">
-                Les indicateurs apparaîtront avec vos premières opérations.
+                Collectes, production, ventes et règlements de la période.
               </p>
             </div>
             <span className="hidden text-xs font-medium text-[#758178] sm:inline">
-              Tous les chiffres sont à zéro
+              Stock et créances : soldes actuels
             </span>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {indicators.map((indicator) => (
               <article
                 className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm"
@@ -210,6 +335,98 @@ export default async function Home() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section
+          aria-labelledby="impact-title"
+          className="rounded-2xl border border-[#cfe3d3] bg-[#edf7ef] p-5 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-6 sm:px-7"
+        >
+          <div>
+            <h2
+              className="text-lg font-semibold text-[#193b29]"
+              id="impact-title"
+            >
+              Plastique détourné de l’environnement
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-[#52685a]">
+              Indicateur calculé uniquement à partir du poids accepté au tri,
+              pour la période sélectionnée.
+            </p>
+          </div>
+          <p className="mt-3 whitespace-nowrap text-3xl font-semibold text-[#205d39] sm:mt-0">
+            {kilogramsLabel(data.totals.acceptedKg)}
+          </p>
+        </section>
+
+        <DashboardCharts data={data.monthly} />
+
+        <section
+          aria-label="Classement des collecteurs et détail du stock matière"
+          className="grid gap-4 lg:grid-cols-2"
+        >
+          <article className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#193b29]">
+              Top collecteurs
+            </h2>
+            <p className="mt-1 text-sm text-[#758178]">
+              Classement par poids accepté pendant la période.
+            </p>
+            {data.topCollectors.length > 0 ? (
+              <ol className="mt-4 divide-y divide-[#edf1ed]">
+                {data.topCollectors.map((collector, index) => (
+                  <li
+                    className="flex items-center justify-between gap-3 py-3"
+                    key={collector.id}
+                  >
+                    <span className="flex min-w-0 items-center gap-3">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#edf5ef] text-sm font-semibold text-[#286542]">
+                        {index + 1}
+                      </span>
+                      <span className="truncate text-sm font-medium text-[#264432]">
+                        {collector.name}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-sm font-semibold text-[#205d39]">
+                      {kilogramsLabel(collector.acceptedKg)}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="mt-4 rounded-xl bg-[#f6f9f6] p-4 text-sm text-[#758178]">
+                Aucun poids accepté sur cette période.
+              </p>
+            )}
+          </article>
+          <article className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#193b29]">
+              Stock matière par type
+            </h2>
+            <p className="mt-1 text-sm text-[#758178]">
+              Soldes actuels calculés à partir des entrées et sorties tracées.
+            </p>
+            {data.materialStock.length > 0 ? (
+              <ul className="mt-4 divide-y divide-[#edf1ed]">
+                {data.materialStock.map((stock) => (
+                  <li
+                    className="flex items-center justify-between gap-3 py-3"
+                    key={stock.plasticType}
+                  >
+                    <span className="text-sm font-medium text-[#264432]">
+                      {stock.plasticType}
+                    </span>
+                    <span className="text-sm font-semibold text-[#205d39]">
+                      {kilogramsLabel(stock.quantityKg)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 rounded-xl bg-[#f6f9f6] p-4 text-sm text-[#758178]">
+                Aucun stock matière disponible.
+              </p>
+            )}
+          </article>
         </section>
 
         <section

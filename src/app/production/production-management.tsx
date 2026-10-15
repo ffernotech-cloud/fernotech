@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { createProductionOrder } from "@/app/production/actions";
 import { kilogramsLabel } from "@/lib/collectors/metrics";
+import { CURRENCY_LABEL, formatCurrency } from "@/lib/currency";
 import { productionLossRate } from "@/lib/production/calculations";
 import type { ProductionActionState } from "@/lib/production/validation";
 
@@ -34,10 +35,7 @@ const fieldClass =
 const labelClass = "mb-2 block text-sm font-semibold text-[#314a39]";
 
 function moneyLabel(value: number): string {
-  return `${new Intl.NumberFormat("fr-FR", {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
-  }).format(value)} FCFA`;
+  return formatCurrency(value);
 }
 
 function displayDate(value: string): string {
@@ -196,7 +194,7 @@ function CreateProductionForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="production-material-cost">
-          Coût matière par kg (FCFA)
+          Coût matière par kg ({CURRENCY_LABEL})
         </label>
         <input
           className={fieldClass}
@@ -211,7 +209,7 @@ function CreateProductionForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="production-labor-cost">
-          Main-d’œuvre (FCFA)
+          Main-d’œuvre ({CURRENCY_LABEL})
         </label>
         <input
           className={fieldClass}
@@ -226,7 +224,7 @@ function CreateProductionForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="production-energy-cost">
-          Énergie (FCFA)
+          Énergie ({CURRENCY_LABEL})
         </label>
         <input
           className={fieldClass}
@@ -241,7 +239,7 @@ function CreateProductionForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="production-accessory-cost">
-          Manches et accessoires (FCFA)
+          Manches et accessoires ({CURRENCY_LABEL})
         </label>
         <input
           className={fieldClass}

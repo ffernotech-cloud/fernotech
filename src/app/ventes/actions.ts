@@ -12,6 +12,7 @@ import {
   salesOrders,
 } from "@/db/schema";
 import { requirePermission } from "@/lib/auth/guards";
+import { formatCurrency } from "@/lib/currency";
 import {
   calculateSalesTotal,
   finishedStockIsSufficient,
@@ -324,10 +325,12 @@ export async function recordPayment(
         )
       ) {
         return {
-          error: `Le règlement dépasse le solde restant de ${outstandingReceivable(
-            sale.totalAmount,
-            existingPayments.map((payment) => payment.amount),
-          )} FCFA.`,
+          error: `Le règlement dépasse le solde restant de ${formatCurrency(
+            outstandingReceivable(
+              sale.totalAmount,
+              existingPayments.map((payment) => payment.amount),
+            ),
+          )}.`,
         };
       }
 

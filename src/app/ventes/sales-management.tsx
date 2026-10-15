@@ -7,6 +7,7 @@ import {
   recordPayment,
   updateSalesOrderStatus,
 } from "@/app/ventes/actions";
+import { CURRENCY_LABEL, formatCurrency } from "@/lib/currency";
 import type { SalesActionState } from "@/lib/sales/validation";
 
 type CustomerRow = {
@@ -66,10 +67,7 @@ const paymentMethodLabels = {
 } as const;
 
 function moneyLabel(value: string | number): string {
-  return `${new Intl.NumberFormat("fr-FR", {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
-  }).format(Number(value))} FCFA`;
+  return formatCurrency(value);
 }
 
 function displayDate(value: string): string {
@@ -236,7 +234,7 @@ function SalesOrderForm({
       </div>
       <div>
         <label className={labelClass} htmlFor="order-unit-price">
-          Prix par balai (FCFA)
+          Prix par balai ({CURRENCY_LABEL})
         </label>
         <input
           className={fieldClass}
@@ -303,7 +301,7 @@ function PaymentForm({ sale, defaultDate }: { sale: SaleRow; defaultDate: string
       <input name="saleId" type="hidden" value={sale.id} />
       <div>
         <label className={labelClass} htmlFor={`payment-amount-${sale.id}`}>
-          Montant reçu (FCFA)
+          Montant reçu ({CURRENCY_LABEL})
         </label>
         <input
           className={fieldClass}

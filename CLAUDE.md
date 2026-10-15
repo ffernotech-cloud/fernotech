@@ -61,7 +61,7 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
   lorsqu'une interaction navigateur le demande.
 - Garder les calculs metier dans des fonctions pures testables avec Vitest.
 - Afficher les dates en JJ/MM/AAAA, les poids en kg et la devise configurable
-  (XAF par défaut).
+  (XAF par défaut via `NEXT_PUBLIC_CURRENCY_CODE`).
 - Conserver les saisies de formulaire si l'enregistrement echoue.
 - Ne jamais commiter de secrets, de données personnelles réelles ou de fichier
   `.env`.

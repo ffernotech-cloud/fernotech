@@ -10,6 +10,7 @@ import {
   productionOrders,
 } from "@/db/schema";
 import { requirePermission } from "@/lib/auth/guards";
+import { formatCurrency } from "@/lib/currency";
 import {
   calculateProductionCosts,
   productionBalanceIsValid,
@@ -150,7 +151,7 @@ export async function createProductionOrder(
       });
 
       return {
-        message: `Fabrication enregistrée : ${parsed.data.broomsProduced} balais. Coût estimé : ${costs.totalCost} FCFA, soit ${costs.costPerBroom} FCFA par balai.`,
+        message: `Fabrication enregistrée : ${parsed.data.broomsProduced} balais. Coût estimé : ${formatCurrency(costs.totalCost)}, soit ${formatCurrency(costs.costPerBroom)} par balai.`,
       };
     },
   );

@@ -9,8 +9,8 @@ transformation de plastique en balais.
 - Tailwind CSS
 - PostgreSQL sur Neon (Vercel Marketplace), avec Drizzle ORM
 - Auth.js (identifiant/mot de passe, sessions JWT et rôles)
+- Recharts pour les évolutions mensuelles
 - Vitest pour tester les permissions et les règles sensibles
-- Recharts sera ajouté avec le tableau de bord complet.
 - La configuration de shadcn/ui est prête; ses composants seront ajoutés au
   fil des écrans.
 
@@ -24,6 +24,10 @@ npm run dev
 ```
 
 Ouvrir [http://localhost:3000](http://localhost:3000).
+
+La devise par défaut est le franc CFA (XAF). Pour choisir une autre devise,
+définir `NEXT_PUBLIC_CURRENCY_CODE` dans `.env.local` et dans les variables
+d'environnement Vercel, puis redéployer.
 
 Commandes disponibles actuellement :
 
@@ -93,6 +97,14 @@ administrateur actif ne peut pas être supprimé par erreur.
 
 Les permissions sont contrôlées dans les fonctions serveur, même lorsqu'une
 page ou une action est appelée directement.
+
+## Tableau de bord
+
+Le tableau de bord filtre les collectes, la production, les ventes et les
+règlements par période. Les stocks restent des soldes actuels calculés depuis
+les mouvements, et les créances ouvertes incluent toutes les ventes. La marge
+est une estimation fondée sur le coût moyen historique des balais produits,
+car les ventes ne sont pas reliées à un ordre de fabrication précis.
 
 ## Module Collecteurs
 
