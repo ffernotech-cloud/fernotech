@@ -4,40 +4,157 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#286542" />
-    <title>Connexion indisponible · FERNOTECH ECO-TRACK</title>
+    <meta name="description" content="Espace de préparation et de saisie hors ligne FERNOTECH ECO-TRACK." />
+    <title>Espace hors ligne · FERNOTECH ECO-TRACK</title>
     <style>
-      body {
-        margin: 0;
-        padding: 2rem 1rem;
+      :root {
+        color-scheme: light;
+        font-family: Arial, Helvetica, sans-serif;
         background: #f4f7f4;
         color: #193b29;
-        font-family: Arial, Helvetica, sans-serif;
       }
-      main {
-        max-width: 32rem;
-        margin: 10vh auto;
-        padding: 2rem;
-        border: 1px solid #d9e4da;
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 1rem; }
+      main { max-width: 70rem; margin: 0 auto; }
+      header, section, .notice {
+        border: 1px solid #e0e9e1;
         border-radius: 1rem;
-        background: white;
+        background: #fff;
+        padding: 1rem;
+        margin-bottom: 1rem;
       }
-      a {
-        display: inline-block;
-        margin-top: 1rem;
-        color: #205d39;
-        font-weight: 700;
+      h1 { margin: .35rem 0; font-size: 1.5rem; }
+      h2 { margin-top: 0; font-size: 1.15rem; }
+      .muted { color: #65736a; font-size: .9rem; line-height: 1.5; }
+      .brand { color: #286542; font-size: .75rem; font-weight: 700; letter-spacing: .15em; }
+      .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+      .grid { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+      label { display: grid; gap: .35rem; font-size: .85rem; font-weight: 700; }
+      input, select, textarea, button {
+        min-height: 2.9rem;
+        width: 100%;
+        border: 1px solid #d4e0d6;
+        border-radius: .75rem;
+        background: #fff;
+        color: #193b29;
+        padding: .7rem .8rem;
+        font: inherit;
+      }
+      textarea { min-height: 5rem; }
+      button { width: auto; cursor: pointer; background: #205d39; color: white; border-color: #205d39; font-weight: 700; }
+      button.secondary { background: #fff; color: #205d39; }
+      button.danger { background: #fff; color: #9a342a; border-color: #dfc9c6; }
+      button:disabled { opacity: .55; cursor: not-allowed; }
+      .status { display: inline-flex; gap: .4rem; align-items: center; border-radius: 2rem; background: #edf5ef; padding: .4rem .7rem; font-size: .8rem; font-weight: 700; }
+      .status.offline { background: #fff3df; color: #8a5413; }
+      .status.error { background: #fbeceb; color: #9a342a; }
+      .notice { background: #fff9e9; border-color: #eee0b6; color: #604c1a; font-size: .88rem; line-height: 1.5; }
+      .feedback { min-height: 1.3rem; font-size: .9rem; }
+      .feedback.error { color: #9a342a; }
+      .feedback.success { color: #286542; }
+      .item { border-top: 1px solid #e6ede7; padding: .75rem 0; }
+      .item:first-child { border-top: 0; }
+      .item p { margin: .2rem 0; }
+      .small { font-size: .78rem; }
+      @media (min-width: 700px) {
+        body { padding: 2rem; }
+        header, section, .notice { padding: 1.35rem; }
       }
     </style>
   </head>
   <body>
     <main>
-      <h1>Connexion indisponible</h1>
-      <p>
-        L’application a besoin d’Internet pour charger les données et enregistrer
-        les opérations. Aucune saisie hors ligne n’est synchronisée.
-      </p>
-      <p>Rétablissez la connexion puis réessayez.</p>
-      <a href="/">Réessayer</a>
+      <header>
+        <div class="brand">FERNOTECH ECO-TRACK</div>
+        <h1>Espace de saisie hors ligne</h1>
+        <p class="muted">Préparez les listes lorsque vous êtes connecté. Les apports, tris et fabrications seront envoyés automatiquement dès que le réseau et votre session seront disponibles.</p>
+        <div class="row">
+          <span class="status" id="connection-status">Vérification de la connexion…</span>
+          <span class="status" id="queue-status">File en attente : 0</span>
+          <button class="secondary" id="refresh-data" type="button">Actualiser les listes en ligne</button>
+        </div>
+        <p class="feedback" id="global-feedback" aria-live="polite"></p>
+      </header>
+
+      <div class="notice">
+        <strong>À savoir :</strong> les données de préparation et les saisies en attente sont conservées sur cet appareil. Utilisez un appareil protégé par un code et évitez un navigateur partagé. Les ventes et règlements ne sont pas disponibles hors ligne. Les soldes matière sont provisoires; chaque fabrication est revérifiée sur le serveur avant d’être enregistrée.
+      </div>
+
+      <section>
+        <h2>1. Collecteurs</h2>
+        <form id="collector-form" class="grid">
+          <label>Nom<input name="name" maxlength="120" minlength="2" required /></label>
+          <label>Type<select name="type" required><option value="individuel">Individuel</option><option value="association">Association</option><option value="groupe">Groupe</option></select></label>
+          <label>Téléphone<input name="phone" maxlength="40" type="tel" /></label>
+          <label>Zone<input name="zone" maxlength="120" /></label>
+          <label class="wide">Notes<textarea name="notes" maxlength="2000"></textarea></label>
+          <div><button type="submit">Mettre le collecteur en attente</button></div>
+        </form>
+      </section>
+
+      <section>
+        <h2>2. Enregistrer un apport</h2>
+        <form id="delivery-form" class="grid">
+          <label>Collecteur<select name="collectorId" id="collector-select" required></select></label>
+          <label>Date<input name="deliveryDate" id="delivery-date" type="date" required /></label>
+          <label>Point de collecte<input name="collectionPoint" maxlength="160" required /></label>
+          <label>Type de plastique<input name="plasticType" list="plastic-types" maxlength="80" placeholder="PET, PEHD, sachets…" required /><datalist id="plastic-types"><option value="PET"></option><option value="PEHD"></option><option value="Sachets"></option><option value="Autres"></option></datalist></label>
+          <label>Poids reçu (kg)<input name="receivedKg" inputmode="decimal" pattern="[0-9]+([,.][0-9]{1,3})?" placeholder="Ex. 15" required /></label>
+          <div><button type="submit">Mettre l’apport en attente</button></div>
+        </form>
+      </section>
+
+      <section>
+        <h2>3. Trier un apport</h2>
+        <form id="sorting-form" class="grid">
+          <label>Apport reçu<select name="deliveryId" id="delivery-select" required></select></label>
+          <label>Poids accepté (kg)<input name="acceptedKg" inputmode="decimal" pattern="[0-9]+([,.][0-9]{1,3})?" required /></label>
+          <label>Poids rejeté (kg)<input name="rejectedKg" inputmode="decimal" pattern="[0-9]+([,.][0-9]{1,3})?" required /></label>
+          <label>Motif du rejet<textarea name="rejectionReason" maxlength="1000"></textarea></label>
+          <div><button type="submit">Mettre le tri en attente</button></div>
+        </form>
+      </section>
+
+      <section>
+        <h2>4. Intégrer au stock matière</h2>
+        <form id="integration-form" class="grid">
+          <label>Apport trié<select name="deliveryId" id="integration-select" required></select></label>
+          <div><button type="submit">Mettre l’intégration en attente</button></div>
+        </form>
+        <p class="muted">L’intégration est appliquée une seule fois. Le stock officiel est calculé par le serveur depuis les mouvements enregistrés.</p>
+      </section>
+
+      <section>
+        <h2>5. Enregistrer une fabrication</h2>
+        <form id="production-form" class="grid">
+          <label>Date de fabrication<input name="productionDate" id="production-date" type="date" required /></label>
+          <label>Type de plastique<select name="plasticType" id="plastic-select" required></select></label>
+          <label>Plastique utilisé (kg)<input name="materialUsedKg" inputmode="decimal" pattern="[0-9]+([,.][0-9]{1,3})?" required /></label>
+          <label>Bandes préparées (kg)<input name="bandsPreparedKg" inputmode="decimal" pattern="[0-9]+([,.][0-9]{1,3})?" required /></label>
+          <label>Nombre de balais<input name="broomsProduced" inputmode="numeric" pattern="[0-9]+" required /></label>
+          <label>Pertes (kg)<input name="lossKg" value="0" inputmode="decimal" pattern="[0-9]+([,.][0-9]{1,3})?" required /></label>
+          <label>Motif des pertes<textarea name="lossReason" maxlength="1000"></textarea></label>
+          <label>Coût matière / kg (devise configurée)<input name="materialCostPerKg" value="0" inputmode="decimal" required /></label>
+          <label>Main-d’œuvre (devise configurée)<input name="laborCost" value="0" inputmode="decimal" required /></label>
+          <label>Énergie (devise configurée)<input name="energyCost" value="0" inputmode="decimal" required /></label>
+          <label>Accessoires (devise configurée)<input name="accessoriesCost" value="0" inputmode="decimal" required /></label>
+          <div><button type="submit">Mettre la fabrication en attente</button></div>
+        </form>
+        <p class="muted" id="stock-summary">Le stock provisoire sera affiché après préparation en ligne.</p>
+      </section>
+
+      <section>
+        <h2>File de synchronisation</h2>
+        <p class="muted">Les éléments sont traités dans l’ordre de saisie. En cas de conflit, la file s’arrête et affiche le motif; corrigez la situation puis réessayez ou supprimez explicitement la saisie refusée.</p>
+        <div id="queue-list"></div>
+      </section>
+
+      <section>
+        <h2>Préparation et effacement local</h2>
+        <p class="muted" id="prepared-at">Aucune préparation locale enregistrée.</p>
+        <button class="danger" id="clear-local" type="button">Effacer les listes et les saisies locales</button>
+      </section>
     </main>
+    <script src="/offline-app.js" defer></script>
   </body>
 </html>

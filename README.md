@@ -111,9 +111,17 @@ car les ventes ne sont pas reliées à un ordre de fabrication précis.
 Les pages Collecteurs, Tri, Production et Ventes proposent des exports CSV
 compatibles avec Excel. Les exports sont réservés aux rôles autorisés et ne sont
 pas mis en cache. Le rapport de production peut être imprimé ou enregistré en
-PDF. L’application est installable depuis le menu du navigateur; le mode hors
-connexion affiche uniquement une page d’information et ne synchronise aucune
-saisie.
+PDF. L’application est installable depuis le menu du navigateur. Les rôles
+Administrateur et Responsable d’atelier peuvent préparer un espace de saisie
+hors ligne pour les collecteurs, apports, tri et production; la synchronisation
+requiert le même compte et revalide le stock serveur. Les ventes et règlements
+restent en ligne. Les données locales restent dans IndexedDB du navigateur;
+protégez l’appareil.
+
+L’Administrateur peut télécharger depuis **Utilisateurs** une archive complète
+de données chiffrée par AES-256-GCM. Elle inclut les empreintes de mots de passe;
+gardez la phrase secrète séparément. La restauration opérationnelle reste gérée
+par les sauvegardes Neon.
 
 Consulter le [guide utilisateur](./docs/guide-utilisateur.md) ou le
 [guide d’installation](./docs/guide-installation.md) pour les instructions

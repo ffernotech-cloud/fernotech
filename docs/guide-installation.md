@@ -44,6 +44,32 @@ Development avant de lancer un nouvel environnement. Après une migration de
 schéma, lancer `npm run db:migrate` avec la bonne base Neon et vérifier le
 déploiement dans Vercel.
 
+## Mode hors ligne
+
+Le service worker ne met pas en cache les pages privées ni leurs réponses API.
+Il conserve uniquement l’espace de saisie statique. Les listes métier sont
+chargées par une API protégée, puis conservées dans IndexedDB sur l’appareil.
+La synchronisation repasse par l’API authentifiée et revalide les permissions,
+les bilans matière et le stock au moment de l’écriture. Les opérations de tri,
+d’intégration et de production restent transactionnelles.
+
+Après déploiement, ouvrir une session Responsable d’atelier ou Administrateur,
+visiter **Préparer l’espace hors ligne** une fois avec une connexion, puis
+vérifier l’enregistrement local et la synchronisation sur un environnement
+autorisé avant usage opérationnel. Les opérations financières restent en ligne.
+Les données IndexedDB sont propres au navigateur et ne sont pas chiffrées par
+l’application; protéger les appareils et ne pas partager le profil du navigateur.
+
+## Fichiers de sauvegarde administrateur
+
+Dans **Utilisateurs**, l’Administrateur peut télécharger l’archive complète
+chiffrée. AES-256-GCM protège son contenu avec une phrase secrète d’au moins
+12 caractères (PBKDF2-SHA256, 600 000 itérations). La perte de cette phrase rend
+l’archive illisible. Ne conservez pas fichier et phrase au même endroit. Le
+téléchargement couvre les tables de données, mais l’application ne restaure pas
+directement cette archive; utilisez les fonctions de restauration Neon pour les
+reprises de base de données.
+
 ## Vérifications avant livraison
 
 ```bash

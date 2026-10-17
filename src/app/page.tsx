@@ -175,6 +175,14 @@ export default async function Home({
                 Production
               </Link>
             ) : null}
+            {roleHasPermission(user.role, "production:manage") ? (
+              <Link
+                className="rounded-xl border border-[#c9ddcd] px-4 py-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"
+                href="/hors-ligne.html"
+              >
+                Préparer l’espace hors ligne
+              </Link>
+            ) : null}
             {roleHasPermission(user.role, "sales:manage") ? (
               <Link
                 className="rounded-xl px-4 py-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef]"

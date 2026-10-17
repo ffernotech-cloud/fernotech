@@ -30,6 +30,48 @@ ouvrable dans Excel. Dans Excel configuré en français, le séparateur de colon
 est le point-virgule. Le rapport de production peut être imprimé ou enregistré en
 PDF depuis **Production → Rapport imprimable / PDF**.
 
+## Préparer les saisies hors ligne
+
+Cette fonction est réservée à l’Administrateur et au Responsable d’atelier.
+
+1. Pendant que vous êtes connecté, ouvrez **Préparer l’espace hors ligne** depuis
+   le tableau de bord et attendez la confirmation de préparation des listes.
+2. Ouvrez cet espace dans l’application installée avant de quitter la zone de
+   couverture. La préparation conserve sur cet appareil les collecteurs actifs,
+   les 500 derniers apports encore à traiter et le stock matière courant.
+3. Sans réseau, enregistrez un collecteur, un apport, un tri, une intégration ou
+   une fabrication dans cet espace. Chaque saisie est conservée dans la file
+   locale; un indicateur montre son état.
+4. Au retour du réseau, gardez l’espace ouvert et reconnectez-vous avec le même
+   compte. La file est envoyée dans l’ordre et se met à jour automatiquement.
+   Les fabrications sont revérifiées avec le stock serveur. En cas de conflit,
+   la file s’arrête, affiche l’erreur et demande une vérification avant nouvel
+   essai. Une saisie refusée peut être supprimée explicitement depuis la file.
+5. Après synchronisation, vérifiez les modules concernés dans l’application
+   connectée. Les opérations hors ligne sont identifiées dans le journal d’audit.
+
+Les ventes et règlements ne sont jamais enregistrés hors ligne. Les soldes
+affichés hors ligne sont provisoires et le stock serveur reste la référence.
+Les listes privées et saisies en attente sont conservées localement sur
+l’appareil; utilisez un appareil protégé par un code et évitez les profils de
+navigateur partagés. **Effacer les données locales** supprime aussi les saisies
+encore en attente.
+
+## Sauvegarde administrateur
+
+L’Administrateur ouvre **Utilisateurs → Sauvegarde complète de la base**, saisit
+et confirme une phrase secrète d’au moins 12 caractères, puis télécharge le
+fichier `.fernotech-backup.json`. L’archive contient toutes les tables métier,
+les journaux d’audit et les empreintes de mots de passe; elle est chiffrée en
+AES-256-GCM. Conservez le fichier et la phrase secrète séparément, dans deux
+emplacements sûrs. Sans la phrase secrète, le fichier ne peut pas être déchiffré.
+La phrase n’est ni enregistrée par l’application ni récupérable.
+
+La sauvegarde administrateur est une archive de données chiffrée; ce n’est pas
+un export `pg_dump` et elle ne fournit pas de restauration en un clic. Gardez
+également activées les sauvegardes/restaurations gérées par Neon pour récupérer
+rapidement une base en cas d’incident.
+
 ## Installer sur un téléphone
 
 - **Android / Chrome** : ouvrez l’application, puis le menu du navigateur et
@@ -38,6 +80,5 @@ PDF depuis **Production → Rapport imprimable / PDF**.
 - **Ordinateur** : dans Chrome ou Edge, utilisez l’icône d’installation dans la
   barre d’adresse ou le menu du navigateur.
 
-L’application installée nécessite toujours une connexion Internet pour lire et
-enregistrer les données. En cas de coupure, reconnectez-vous avant de saisir une
-opération; aucune synchronisation hors ligne n’est activée.
+L’application installée peut ouvrir l’espace de saisie hors ligne préparé au
+préalable. Le tableau de bord et les autres pages nécessitent Internet.

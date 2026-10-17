@@ -4,6 +4,7 @@ import { getDatabase } from "@/db";
 import { users } from "@/db/schema";
 import { requirePermission } from "@/lib/auth/guards";
 import { UserManagement } from "@/app/utilisateurs/user-management";
+import { BackupPanel } from "@/app/utilisateurs/backup-panel";
 
 export const instant = false;
 
@@ -42,6 +43,7 @@ export default async function UsersPage() {
           </div>
         </header>
         <UserManagement currentUserId={actor.id} users={userList} />
+        <BackupPanel />
       </div>
     </main>
   );
