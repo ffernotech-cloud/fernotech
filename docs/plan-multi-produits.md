@@ -7,10 +7,11 @@ sur le balai pendant les étapes de migration. Les spécifications techniques
 initiales ne sont pas encore fournies : ne créer aucune valeur métier
 supposée.
 
-Première étape implémentée localement : tables catalogue et versions de fiches,
-produits initiaux, permissions de gestion et page `/produits`. La migration
-`0005` n'a pas été appliquée à Neon ni déployée; la production, les ventes et
-les mouvements restent à relier aux produits dans les étapes suivantes.
+Première étape livrée : tables catalogue et versions de fiches, produits
+initiaux, permissions de gestion et page `/produits`. La migration `0005` est
+appliquée à Neon et le commit `3b4ff6c` est déployé en production. La production,
+les ventes et les mouvements historiques restent à relier aux produits dans
+les étapes suivantes.
 
 ## Cible fonctionnelle
 
