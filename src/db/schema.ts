@@ -10,6 +10,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -68,6 +69,66 @@ export const users = pgTable("users", {
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
+
+export const products = pgTable("products", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 40 }).notNull().unique(),
+  name: varchar("name", { length: 120 }).notNull(),
+  description: text("description"),
+  unitLabel: varchar("unit_label", { length: 40 }).notNull().default("unité"),
+  alertThreshold: integer("alert_threshold"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+}, (table) => [
+  check(
+    "products_alert_threshold_non_negative",
+    sql`${table.alertThreshold} IS NULL OR ${table.alertThreshold} >= 0`,
+  ),
+]);
+
+export const productTechnicalSpecs = pgTable(
+  "product_technical_specs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "restrict" }),
+    version: integer("version").notNull(),
+    effectiveFrom: date("effective_from"),
+    standardBandsKgPerUnit: numeric("standard_bands_kg_per_unit", {
+      precision: 10,
+      scale: 3,
+    }),
+    specifications: jsonb("specifications")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    notes: text("notes"),
+    createdBy: uuid("created_by").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("product_technical_specs_product_version_unique").on(
+      table.productId,
+      table.version,
+    ),
+    check("product_technical_specs_version_positive", sql`${table.version} > 0`),
+    check(
+      "product_technical_specs_standard_bands_non_negative",
+      sql`${table.standardBandsKgPerUnit} IS NULL OR ${table.standardBandsKgPerUnit} > 0`,
+    ),
+  ],
+);
 
 export const collectors = pgTable("collectors", {
   id: uuid("id").defaultRandom().primaryKey(),

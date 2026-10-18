@@ -36,6 +36,7 @@ export const permissions = [
   "production:manage",
   "materials:read",
   "products:read",
+  "products:manage",
   "sales:manage",
   "customers:manage",
   "users:manage",
@@ -53,6 +54,7 @@ const permissionsByRole: Record<AppRole, readonly Permission[]> = {
     "production:manage",
     "materials:read",
     "products:read",
+    "products:manage",
   ],
   commercial_caissier: [
     "dashboard:read",

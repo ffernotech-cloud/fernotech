@@ -40,6 +40,17 @@ describe("permissions des rôles", () => {
     );
   });
 
+  it("autorise l’administrateur et l’atelier à gérer le catalogue", () => {
+    expect(roleHasPermission("administrateur", "products:manage")).toBe(true);
+    expect(roleHasPermission("responsable_atelier", "products:manage")).toBe(
+      true,
+    );
+    expect(roleHasPermission("commercial_caissier", "products:manage")).toBe(
+      false,
+    );
+    expect(roleHasPermission("lecteur", "products:manage")).toBe(false);
+  });
+
   it("limite le commercial aux ventes et à la lecture du stock de produits finis", () => {
     expect(roleHasPermission("commercial_caissier", "sales:manage")).toBe(true);
     expect(roleHasPermission("commercial_caissier", "customers:manage")).toBe(

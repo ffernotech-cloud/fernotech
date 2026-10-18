@@ -36,6 +36,13 @@
       "when": 1792023419042,
       "tag": "0004_safe_reavers",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792313845913,
+      "tag": "0005_solid_marten_broadcloak",
+      "breakpoints": true
     }
   ]
 }

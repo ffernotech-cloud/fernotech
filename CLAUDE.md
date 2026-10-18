@@ -3,8 +3,16 @@
 ## Objectif
 
 Application en français pour tracer la collecte, le tri, les stocks, la
-production, les ventes et les règlements de plastique transformé en balais.
-Interface mobile-first, boutons faciles à utiliser et formulaires courts.
+production, les ventes et les règlements de plastique transformé en plusieurs
+produits finis. Le catalogue cible comprend Balai, Brosse, Brosse à laver avec
+manche, File à linge et Pavé. Interface mobile-first, boutons faciles à
+utiliser et formulaires courts.
+
+Le schéma et les écrans actuellement en place sont encore centrés sur le balai.
+L’évolution multi-produits validée et ses choix sont suivis dans
+[docs/plan-multi-produits.md](./docs/plan-multi-produits.md); les données
+techniques propres à chaque produit restent à fournir et ne doivent pas être
+inventées.
 
 ## Stack
 
@@ -40,16 +48,24 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
 11. Le bilan du tri doit correspondre exactement au poids reçu, au gramme près;
     l'intégration du poids accepté et le mouvement de stock sont atomiques.
 12. Une fabrication consomme le stock matière du type choisi et alimente le
-    stock fini via des mouvements atomiques; le bilan utilisé = bandes + pertes
-    est exact au gramme près.
+    stock de chaque produit fini via des mouvements atomiques; le bilan utilisé
+    = bandes + pertes est exact au gramme près.
 13. Le coût matière/kg est saisi à chaque ordre de fabrication et ne doit pas
     être présenté comme un coût d’achat historique moyen.
-14. Le stock de produits finis est calculé depuis les mouvements: la production
-    enregistre une entrée et chaque livraison vendue une sortie atomiquement.
+14. Le stock de chaque produit fini est calculé depuis les mouvements: les
+    lignes de production enregistrent des entrées et les lignes livrées des
+    sorties atomiquement. Aucun solde de stock n'est saisi directement.
 15. Une commande en attente ou préparée ne débite pas le stock; le débit et la
-    création de la vente sont atomiques lors de la livraison.
+    création de la vente sont atomiques lors de la livraison, pour chaque
+    produit commandé.
 16. Les règlements cumulés d’une vente ne peuvent pas dépasser son montant;
     toute évolution commerciale ou financière est auditée.
+17. Toute ligne de production et de vente référence un produit du catalogue;
+    les quantités, tarifs et versions de fiche technique utilisés sont
+    conservés pour préserver l'historique.
+18. Le catalogue et les fiches techniques sont configurables sans modifier le
+    code. Une fiche technique utilisée par un ordre de fabrication reste
+    historisée et n'est pas écrasée par une nouvelle version.
 
 ## Conventions
 
@@ -77,8 +93,27 @@ Interface mobile-first, boutons faciles à utiliser et formulaires courts.
   la même transaction que l'enregistrement métier.
 - Le stock matière est toujours calculé depuis `material_stock_movements`;
   aucune action ne saisit directement un solde.
+- Le stock fini doit être calculé par produit depuis les mouvements associés à
+  ce produit; aucun champ de quantité dans le catalogue ne constitue un stock.
+- Les commandes et les ordres de fabrication multi-produits doivent utiliser
+  des lignes liées au catalogue, avec un mouvement de stock par ligne source.
 - Le dernier administrateur actif et le compte de l'administrateur courant ne
   peuvent pas être désactivés ou rétrogradés.
+
+## Évolution validée — catalogue multi-produits
+
+L'évolution cible ajoute un catalogue configurable pour Balai, Brosse, Brosse
+à laver avec manche, File à linge et Pavé, des fiches techniques versionnées,
+des ordres de fabrication multi-lignes, des stocks par produit et des ventes
+composées de plusieurs produits. Le tableau de bord doit proposer un filtre
+Année avec sélection d'une année précise, afficher les équivalents en tonnes
+(1 000 kg = 1 tonne) et détailler les indicateurs par produit.
+
+Le schéma validé, la migration des données historiques (balais vers le produit
+Balai) et les étapes de réalisation sont décrits dans
+[docs/plan-multi-produits.md](./docs/plan-multi-produits.md). Les coûts sont
+ventilés manuellement par ligne et la configuration catalogue est accessible à
+l'Administrateur et au Responsable d'atelier.
 
 ## Commandes
 
