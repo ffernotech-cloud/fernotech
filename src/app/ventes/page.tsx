@@ -5,6 +5,7 @@ import {
   customers,
   finishedProductStockMovements,
   payments,
+  products,
   sales,
   salesOrders,
 } from "@/db/schema";
@@ -58,7 +59,12 @@ export default async function SalesPage() {
           movementType: finishedProductStockMovements.movementType,
           quantity: finishedProductStockMovements.quantity,
         })
-        .from(finishedProductStockMovements),
+        .from(finishedProductStockMovements)
+        .innerJoin(
+          products,
+          eq(finishedProductStockMovements.productId, products.id),
+        )
+        .where(eq(products.code, "BALAI")),
       database
         .select({
           id: salesOrders.id,

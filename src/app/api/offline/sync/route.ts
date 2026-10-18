@@ -7,7 +7,10 @@ import {
   deliveries,
   finishedProductStockMovements,
   materialStockMovements,
+  productTechnicalSpecs,
   productionOrders,
+  productionOrderLines,
+  products,
   users,
 } from "@/db/schema";
 import {
@@ -511,7 +514,7 @@ export async function POST(request: Request) {
         laborCost: item.laborCost,
         energyCost: item.energyCost,
         accessoriesCost: item.accessoriesCost,
-        broomsProduced: item.broomsProduced,
+        quantityProduced: item.broomsProduced,
       });
 
       await transaction.execute(
@@ -571,6 +574,27 @@ export async function POST(request: Request) {
         };
       }
 
+      const [balai] = await transaction
+        .select({
+          productId: products.id,
+          technicalSpecId: productTechnicalSpecs.id,
+        })
+        .from(products)
+        .innerJoin(
+          productTechnicalSpecs,
+          eq(productTechnicalSpecs.productId, products.id),
+        )
+        .where(eq(products.code, "BALAI"))
+        .orderBy(sql`${productTechnicalSpecs.version} DESC`)
+        .limit(1);
+      if (!balai) {
+        return {
+          ok: false,
+          error:
+            "Le produit Balai ou sa fiche technique est introuvable. Contactez l’administrateur.",
+        };
+      }
+
       await transaction.insert(productionOrders).values({
         id: item.id,
         productionDate: item.productionDate,
@@ -596,10 +620,27 @@ export async function POST(request: Request) {
         actorId: actor.id,
         reason: "Consommation fabrication (synchronisée hors ligne)",
       });
+      const [productionLine] = await transaction
+        .insert(productionOrderLines)
+        .values({
+          productionOrderId: item.id,
+          productId: balai.productId,
+          technicalSpecId: balai.technicalSpecId,
+          quantityProduced: item.broomsProduced,
+          bandsPreparedKg: item.bandsPreparedKg,
+          materialCost: costs.materialCost,
+          laborCost: item.laborCost,
+          energyCost: item.energyCost,
+          accessoriesCost: item.accessoriesCost,
+          totalCost: costs.totalCost,
+        })
+        .returning({ id: productionOrderLines.id });
       await transaction.insert(finishedProductStockMovements).values({
         movementType: "entree",
+        productId: balai.productId,
         quantity: item.broomsProduced,
         productionOrderId: item.id,
+        productionOrderLineId: productionLine.id,
         actorId: actor.id,
         reason: "Balais fabriqués (synchronisés hors ligne)",
       });

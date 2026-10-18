@@ -3,9 +3,7 @@ import {
   createCollectorSchema,
   createDeliverySchema,
 } from "@/lib/collectors/validation";
-import {
-  createProductionSchema,
-} from "@/lib/production/validation";
+import { createOfflineProductionSchema } from "@/lib/production/validation";
 import {
   integrateDeliverySchema,
   sortDeliverySchema,
@@ -41,7 +39,7 @@ export const offlineSubmissionSchema = z.discriminatedUnion("type", [
   z.object({
     ...ownerAndId,
     type: z.literal("production"),
-    ...createProductionSchema.shape,
+    ...createOfflineProductionSchema.shape,
   }),
 ]);
 

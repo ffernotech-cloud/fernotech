@@ -6,7 +6,9 @@ import {
   finishedProductStockMovements,
   materialStockMovements,
   payments,
+  productionOrderLines,
   productionOrders,
+  products,
   sales,
 } from "@/db/schema";
 import { availableFinishedProductStock } from "@/lib/sales/calculations";
@@ -110,6 +112,7 @@ export async function getDashboardData(from: string, to: string) {
   const [
     deliveryRows,
     productionRows,
+    balaiProductionRows,
     salesRows,
     paymentRows,
     receivableRows,
@@ -136,11 +139,25 @@ export async function getDashboardData(from: string, to: string) {
         month: productionMonth,
         materialUsedKg: sql<string>`coalesce(sum(${productionOrders.materialUsedKg}::numeric), 0)::text`,
         lossKg: sql<string>`coalesce(sum(${productionOrders.lossKg}::numeric), 0)::text`,
-        broomsProduced: sql<string>`coalesce(sum(${productionOrders.broomsProduced}), 0)::text`,
         totalCost: sql<string>`coalesce(sum(${productionOrders.totalCost}::numeric), 0)::text`,
       })
       .from(productionOrders)
       .where(productionFilter)
+      .groupBy(productionMonth)
+      .orderBy(asc(productionMonth)),
+    database
+      .select({
+        month: productionMonth,
+        quantityProduced: sql<string>`coalesce(sum(${productionOrderLines.quantityProduced}), 0)::text`,
+        totalCost: sql<string>`coalesce(sum(${productionOrderLines.totalCost}::numeric), 0)::text`,
+      })
+      .from(productionOrderLines)
+      .innerJoin(
+        productionOrders,
+        eq(productionOrderLines.productionOrderId, productionOrders.id),
+      )
+      .innerJoin(products, eq(productionOrderLines.productId, products.id))
+      .where(and(productionFilter, eq(products.code, "BALAI")))
       .groupBy(productionMonth)
       .orderBy(asc(productionMonth)),
     database
@@ -169,10 +186,12 @@ export async function getDashboardData(from: string, to: string) {
       .groupBy(sales.id, sales.totalAmount),
     database
       .select({
-        totalCost: sql<string>`coalesce(sum(${productionOrders.totalCost}::numeric), 0)::text`,
-        broomsProduced: sql<string>`coalesce(sum(${productionOrders.broomsProduced}), 0)::text`,
+        totalCost: sql<string>`coalesce(sum(${productionOrderLines.totalCost}::numeric), 0)::text`,
+        broomsProduced: sql<string>`coalesce(sum(${productionOrderLines.quantityProduced}), 0)::text`,
       })
-      .from(productionOrders),
+      .from(productionOrderLines)
+      .innerJoin(products, eq(productionOrderLines.productId, products.id))
+      .where(eq(products.code, "BALAI")),
     database
       .select({
         plasticType: materialStockMovements.plasticType,
@@ -190,6 +209,11 @@ export async function getDashboardData(from: string, to: string) {
         quantity: sql<string>`sum(${finishedProductStockMovements.quantity})::text`,
       })
       .from(finishedProductStockMovements)
+      .innerJoin(
+        products,
+        eq(finishedProductStockMovements.productId, products.id),
+      )
+      .where(eq(products.code, "BALAI"))
       .groupBy(finishedProductStockMovements.movementType),
   ]);
 
@@ -202,6 +226,9 @@ export async function getDashboardData(from: string, to: string) {
   const deliveriesRejectedKg = sumKilograms(
     deliveryRows.map((row) => row.rejectedKg),
   );
+  const balaiProductionCost = sumAmounts(
+    balaiProductionRows.map((row) => row.totalCost),
+  );
   const productionTotalCost = sumAmounts(
     productionRows.map((row) => row.totalCost),
   );
@@ -212,7 +239,7 @@ export async function getDashboardData(from: string, to: string) {
     productionRows.map((row) => row.lossKg),
   );
   const productionBrooms = sumCounts(
-    productionRows.map((row) => row.broomsProduced),
+    balaiProductionRows.map((row) => row.quantityProduced),
     "La production",
   );
   const salesRevenue = sumAmounts(salesRows.map((row) => row.revenue));
@@ -292,8 +319,13 @@ export async function getDashboardData(from: string, to: string) {
       point.transformedKg = roundedKilograms(
         point.transformedKg + Number(row.materialUsedKg),
       );
+    }
+  }
+  for (const row of balaiProductionRows) {
+    const point = monthly.get(row.month);
+    if (point) {
       point.producedBrooms = sumCounts(
-        [String(point.producedBrooms), row.broomsProduced],
+        [String(point.producedBrooms), row.quantityProduced],
         "Les balais fabriqués",
       );
     }
@@ -319,7 +351,7 @@ export async function getDashboardData(from: string, to: string) {
       broomsSold,
       totalProductionCost: productionTotalCost,
       averageCostPerBroom: calculateAverageProductionCostPerBroom(
-        productionTotalCost,
+        balaiProductionCost,
         productionBrooms,
       ),
       revenue: salesRevenue,

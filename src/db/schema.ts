@@ -234,6 +234,50 @@ export const productionOrders = pgTable(
   ],
 );
 
+export const productionOrderLines = pgTable(
+  "production_order_lines",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    productionOrderId: uuid("production_order_id")
+      .notNull()
+      .references(() => productionOrders.id, { onDelete: "restrict" }),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "restrict" }),
+    technicalSpecId: uuid("technical_spec_id")
+      .notNull()
+      .references(() => productTechnicalSpecs.id, { onDelete: "restrict" }),
+    quantityProduced: integer("quantity_produced").notNull(),
+    bandsPreparedKg: numeric("bands_prepared_kg", {
+      precision: 10,
+      scale: 3,
+    }).notNull(),
+    materialCost: numeric("material_cost", { precision: 14, scale: 2 }).notNull(),
+    laborCost: numeric("labor_cost", { precision: 14, scale: 2 }).notNull(),
+    energyCost: numeric("energy_cost", { precision: 14, scale: 2 }).notNull(),
+    accessoriesCost: numeric("accessories_cost", {
+      precision: 14,
+      scale: 2,
+    }).notNull(),
+    totalCost: numeric("total_cost", { precision: 14, scale: 2 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("production_line_quantity_positive", sql`${table.quantityProduced} > 0`),
+    check("production_line_bands_non_negative", sql`${table.bandsPreparedKg} >= 0`),
+    check(
+      "production_line_costs_non_negative",
+      sql`${table.materialCost} >= 0 AND ${table.laborCost} >= 0 AND ${table.energyCost} >= 0 AND ${table.accessoriesCost} >= 0 AND ${table.totalCost} >= 0`,
+    ),
+    check(
+      "production_line_total_cost_matches",
+      sql`${table.totalCost} = ${table.materialCost} + ${table.laborCost} + ${table.energyCost} + ${table.accessoriesCost}`,
+    ),
+  ],
+);
+
 export const materialStockMovements = pgTable(
   "material_stock_movements",
   {
@@ -351,9 +395,15 @@ export const finishedProductStockMovements = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     movementType: finishedProductMovementType("movement_type").notNull(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "restrict" }),
     quantity: integer("quantity").notNull(),
     productionOrderId: uuid("production_order_id")
       .references(() => productionOrders.id, { onDelete: "restrict" })
+      .unique(),
+    productionOrderLineId: uuid("production_order_line_id")
+      .references(() => productionOrderLines.id, { onDelete: "restrict" })
       .unique(),
     saleId: uuid("sale_id")
       .references(() => sales.id, { onDelete: "restrict" })
@@ -373,12 +423,20 @@ export const finishedProductStockMovements = pgTable(
       sql`${table.productionOrderId} IS NULL OR ${table.movementType} = 'entree'`,
     ),
     check(
+      "finished_product_line_is_inbound",
+      sql`${table.productionOrderLineId} IS NULL OR ${table.movementType} = 'entree'`,
+    ),
+    check(
       "finished_product_sale_is_outbound",
       sql`${table.saleId} IS NULL OR ${table.movementType} = 'sortie'`,
     ),
     check(
       "finished_product_movement_single_source",
       sql`${table.productionOrderId} IS NULL OR ${table.saleId} IS NULL`,
+    ),
+    check(
+      "finished_product_line_movement_single_source",
+      sql`${table.productionOrderLineId} IS NULL OR ${table.saleId} IS NULL`,
     ),
   ],
 );

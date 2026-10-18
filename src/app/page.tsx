@@ -13,7 +13,7 @@ export const instant = false;
 const stages = [
   { number: "01", label: "Collecte", description: "Suivre les apports" },
   { number: "02", label: "Tri", description: "Peser et qualifier" },
-  { number: "03", label: "Production", description: "Transformer en balais" },
+  { number: "03", label: "Production", description: "Transformer en produits" },
   { number: "04", label: "Ventes", description: "Vendre et encaisser" },
 ];
 

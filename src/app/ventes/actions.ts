@@ -8,6 +8,7 @@ import {
   customers,
   finishedProductStockMovements,
   payments,
+  products,
   sales,
   salesOrders,
 } from "@/db/schema";
@@ -202,14 +203,26 @@ export async function updateSalesOrderStatus(
 
       if (parsed.data.status === "livree") {
         await transaction.execute(
-          sql`select pg_advisory_xact_lock(hashtext('finished-product-stock'))`,
+          sql`select pg_advisory_xact_lock(hashtext('finished-product-stock-balai'))`,
         );
+        const [balai] = await transaction
+          .select({ id: products.id })
+          .from(products)
+          .where(eq(products.code, "BALAI"))
+          .limit(1);
+        if (!balai) {
+          return {
+            error:
+              "Le produit Balai est introuvable dans le catalogue. Contactez l’administrateur.",
+          };
+        }
         const movements = await transaction
           .select({
             movementType: finishedProductStockMovements.movementType,
             quantity: finishedProductStockMovements.quantity,
           })
-          .from(finishedProductStockMovements);
+          .from(finishedProductStockMovements)
+          .where(eq(finishedProductStockMovements.productId, balai.id));
         if (
           !finishedStockIsSufficient(
             movements,
@@ -235,6 +248,7 @@ export async function updateSalesOrderStatus(
           .returning({ id: sales.id });
         await transaction.insert(finishedProductStockMovements).values({
           movementType: "sortie",
+          productId: balai.id,
           quantity: order.quantity,
           saleId: sale.id,
           actorId: actor.id,

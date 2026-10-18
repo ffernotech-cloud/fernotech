@@ -7,7 +7,10 @@ import {
   finishedProductStockMovements,
   materialStockMovements,
   payments,
+  productTechnicalSpecs,
+  productionOrderLines,
   productionOrders,
+  products,
   sales,
   salesOrders,
   users,
@@ -181,22 +184,35 @@ export async function GET(
   if (module === "production") {
     const rows = await database
       .select({
+        productionOrderId: productionOrderLines.productionOrderId,
         productionDate: productionOrders.productionDate,
         supervisorName: users.displayName,
         plasticType: productionOrders.plasticType,
         materialUsedKg: productionOrders.materialUsedKg,
-        bandsPreparedKg: productionOrders.bandsPreparedKg,
-        broomsProduced: productionOrders.broomsProduced,
         lossKg: productionOrders.lossKg,
         lossReason: productionOrders.lossReason,
         materialCostPerKg: productionOrders.materialCostPerKg,
-        materialCost: productionOrders.materialCost,
-        laborCost: productionOrders.laborCost,
-        energyCost: productionOrders.energyCost,
-        accessoriesCost: productionOrders.accessoriesCost,
-        totalCost: productionOrders.totalCost,
+        productName: products.name,
+        productCode: products.code,
+        specVersion: productTechnicalSpecs.version,
+        quantityProduced: productionOrderLines.quantityProduced,
+        bandsPreparedKg: productionOrderLines.bandsPreparedKg,
+        materialCost: productionOrderLines.materialCost,
+        laborCost: productionOrderLines.laborCost,
+        energyCost: productionOrderLines.energyCost,
+        accessoriesCost: productionOrderLines.accessoriesCost,
+        totalCost: productionOrderLines.totalCost,
       })
-      .from(productionOrders)
+      .from(productionOrderLines)
+      .innerJoin(
+        productionOrders,
+        eq(productionOrderLines.productionOrderId, productionOrders.id),
+      )
+      .innerJoin(products, eq(productionOrderLines.productId, products.id))
+      .innerJoin(
+        productTechnicalSpecs,
+        eq(productionOrderLines.technicalSpecId, productTechnicalSpecs.id),
+      )
       .innerJoin(users, eq(productionOrders.supervisorId, users.id))
       .orderBy(desc(productionOrders.productionDate), desc(productionOrders.createdAt));
 
@@ -204,28 +220,36 @@ export async function GET(
       module,
       [
         "Date",
+        "Identifiant ordre",
         "Responsable",
         "Type de plastique",
+        "Produit",
+        "Code produit",
+        "Version fiche technique",
         "Matière utilisée (kg)",
-        "Bandes préparées (kg)",
-        "Balais fabriqués",
+        "Bandes préparées pour le produit (kg)",
+        "Quantité fabriquée",
         "Pertes (kg)",
         "Motif des pertes",
         "Coût matière par kg",
-        "Coût matière",
-        "Main-d’œuvre",
-        "Énergie",
-        "Accessoires",
-        "Coût total",
-        "Coût par balai",
+        "Coût matière du produit",
+        "Main-d’œuvre du produit",
+        "Énergie du produit",
+        "Accessoires du produit",
+        "Coût total du produit",
+        "Coût unitaire",
       ],
       rows.map((row) => [
         formatDate(row.productionDate),
+        row.productionOrderId,
         row.supervisorName,
         row.plasticType,
+        row.productName,
+        row.productCode,
+        row.specVersion,
         row.materialUsedKg,
         row.bandsPreparedKg,
-        row.broomsProduced,
+        row.quantityProduced,
         row.lossKg,
         row.lossReason,
         row.materialCostPerKg,
@@ -234,7 +258,7 @@ export async function GET(
         row.energyCost,
         row.accessoriesCost,
         row.totalCost,
-        (Number(row.totalCost) / row.broomsProduced).toFixed(2),
+        (Number(row.totalCost) / row.quantityProduced).toFixed(2),
       ]),
     );
   }
@@ -400,6 +424,8 @@ export async function GET(
   const finishedRows = await database
     .select({
       createdAt: finishedProductStockMovements.createdAt,
+      productName: products.name,
+      productCode: products.code,
       movementType: finishedProductStockMovements.movementType,
       quantity: finishedProductStockMovements.quantity,
       reason: finishedProductStockMovements.reason,
@@ -407,15 +433,29 @@ export async function GET(
       customerName: customers.name,
     })
     .from(finishedProductStockMovements)
+    .innerJoin(
+      products,
+      eq(finishedProductStockMovements.productId, products.id),
+    )
     .leftJoin(sales, eq(finishedProductStockMovements.saleId, sales.id))
     .leftJoin(customers, eq(sales.customerId, customers.id))
     .orderBy(desc(finishedProductStockMovements.createdAt));
 
   return csvResponse(
     module,
-    ["Date du mouvement", "Mouvement", "Quantité (balais)", "Client", "Motif"],
+    [
+      "Date du mouvement",
+      "Produit",
+      "Code produit",
+      "Mouvement",
+      "Quantité (unités)",
+      "Client",
+      "Motif",
+    ],
     finishedRows.map((row) => [
       formatDate(row.createdAt),
+      row.productName,
+      row.productCode,
       row.movementType === "entree" ? "Entrée" : "Sortie",
       row.quantity,
       row.customerName,

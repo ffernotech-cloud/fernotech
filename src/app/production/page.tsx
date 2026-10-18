@@ -1,10 +1,13 @@
 import Link from "next/link";
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDatabase } from "@/db";
 import {
   finishedProductStockMovements,
   materialStockMovements,
+  productTechnicalSpecs,
+  productionOrderLines,
   productionOrders,
+  products,
   users,
 } from "@/db/schema";
 import { requirePermission } from "@/lib/auth/guards";
@@ -33,53 +36,82 @@ export default async function ProductionPage() {
   const [
     materialMovementRows,
     finishedMovementRows,
+    productRows,
+    productSpecRows,
     orderRows,
     productionTotals,
   ] = await Promise.all([
-      database
-        .select({
-          plasticType: materialStockMovements.plasticType,
-          movementType: materialStockMovements.movementType,
-          quantityKg: materialStockMovements.quantityKg,
-        })
-        .from(materialStockMovements)
-        .orderBy(asc(materialStockMovements.plasticType)),
-      database
-        .select({
-          movementType: finishedProductStockMovements.movementType,
-          quantity: finishedProductStockMovements.quantity,
-        })
-        .from(finishedProductStockMovements),
-      database
-        .select({
-          id: productionOrders.id,
-          productionDate: productionOrders.productionDate,
-          plasticType: productionOrders.plasticType,
-          materialUsedKg: productionOrders.materialUsedKg,
-          bandsPreparedKg: productionOrders.bandsPreparedKg,
-          broomsProduced: productionOrders.broomsProduced,
-          lossKg: productionOrders.lossKg,
-          lossReason: productionOrders.lossReason,
-          materialCostPerKg: productionOrders.materialCostPerKg,
-          laborCost: productionOrders.laborCost,
-          energyCost: productionOrders.energyCost,
-          accessoriesCost: productionOrders.accessoriesCost,
-          materialCost: productionOrders.materialCost,
-          totalCost: productionOrders.totalCost,
-          supervisorName: users.displayName,
-        })
-        .from(productionOrders)
-        .innerJoin(users, eq(productionOrders.supervisorId, users.id))
-        .orderBy(desc(productionOrders.productionDate), desc(productionOrders.createdAt))
-        .limit(50),
-      database
-        .select({
-          broomsProduced: sql<number>`coalesce(sum(${productionOrders.broomsProduced}), 0)::int`
-            .mapWith(Number)
-            .as("brooms_produced"),
-        })
-        .from(productionOrders),
-    ]);
+    database
+      .select({
+        plasticType: materialStockMovements.plasticType,
+        movementType: materialStockMovements.movementType,
+        quantityKg: materialStockMovements.quantityKg,
+      })
+      .from(materialStockMovements)
+      .orderBy(asc(materialStockMovements.plasticType)),
+    database
+      .select({
+        productId: finishedProductStockMovements.productId,
+        movementType: finishedProductStockMovements.movementType,
+        quantity: finishedProductStockMovements.quantity,
+      })
+      .from(finishedProductStockMovements),
+    database
+      .select({
+        id: products.id,
+        name: products.name,
+        code: products.code,
+      })
+      .from(products)
+      .orderBy(asc(products.name)),
+    database
+      .select({
+        id: productTechnicalSpecs.id,
+        productId: products.id,
+        productName: products.name,
+        productCode: products.code,
+        version: productTechnicalSpecs.version,
+      })
+      .from(productTechnicalSpecs)
+      .innerJoin(products, eq(productTechnicalSpecs.productId, products.id))
+      .where(
+        and(
+          eq(products.isActive, true),
+          sql`${productTechnicalSpecs.version} = (
+            select max(current_spec.version)
+            from product_technical_specs as current_spec
+            where current_spec.product_id = ${products.id}
+          )`,
+        ),
+      )
+      .orderBy(asc(products.name)),
+    database
+      .select({
+        id: productionOrders.id,
+        productionDate: productionOrders.productionDate,
+        plasticType: productionOrders.plasticType,
+        materialUsedKg: productionOrders.materialUsedKg,
+        bandsPreparedKg: productionOrders.bandsPreparedKg,
+        lossKg: productionOrders.lossKg,
+        lossReason: productionOrders.lossReason,
+        totalCost: productionOrders.totalCost,
+        supervisorName: users.displayName,
+      })
+      .from(productionOrders)
+      .innerJoin(users, eq(productionOrders.supervisorId, users.id))
+      .orderBy(
+        desc(productionOrders.productionDate),
+        desc(productionOrders.createdAt),
+      )
+      .limit(50),
+    database
+      .select({
+        quantity: sql<number>`coalesce(sum(${productionOrderLines.quantityProduced}), 0)::int`
+          .mapWith(Number)
+          .as("quantity_produced"),
+      })
+      .from(productionOrderLines),
+  ]);
 
   const stockByType = new Map<
     string,
@@ -93,7 +125,6 @@ export default async function ProductionPage() {
     });
     stockByType.set(movement.plasticType, rows);
   }
-
   const materialStock = [...stockByType.entries()]
     .map(([plasticType, movements]) => ({
       plasticType,
@@ -101,14 +132,64 @@ export default async function ProductionPage() {
     }))
     .filter((row) => row.quantityKg > 0)
     .sort((left, right) => left.plasticType.localeCompare(right.plasticType));
-  const finishedStock = finishedMovementRows.reduce(
-    (balance, movement) =>
-      balance +
-      (movement.movementType === "entree"
+
+  const finishedBalanceByProduct = new Map<string, number>();
+  for (const movement of finishedMovementRows) {
+    const quantity =
+      movement.movementType === "entree"
         ? movement.quantity
-        : -movement.quantity),
-    0,
-  );
+        : -movement.quantity;
+    finishedBalanceByProduct.set(
+      movement.productId,
+      (finishedBalanceByProduct.get(movement.productId) ?? 0) + quantity,
+    );
+  }
+  const finishedStock = productRows.map((product) => ({
+    productId: product.id,
+    productName: product.name,
+    productCode: product.code,
+    quantity: finishedBalanceByProduct.get(product.id) ?? 0,
+  }));
+
+  const orderIds = orderRows.map((order) => order.id);
+  const lineRows =
+    orderIds.length === 0
+      ? []
+      : await database
+          .select({
+            productionOrderId: productionOrderLines.productionOrderId,
+            productName: products.name,
+            productCode: products.code,
+            specVersion: productTechnicalSpecs.version,
+            quantityProduced: productionOrderLines.quantityProduced,
+            bandsPreparedKg: productionOrderLines.bandsPreparedKg,
+            materialCost: productionOrderLines.materialCost,
+            laborCost: productionOrderLines.laborCost,
+            energyCost: productionOrderLines.energyCost,
+            accessoriesCost: productionOrderLines.accessoriesCost,
+            totalCost: productionOrderLines.totalCost,
+          })
+          .from(productionOrderLines)
+          .innerJoin(products, eq(productionOrderLines.productId, products.id))
+          .innerJoin(
+            productTechnicalSpecs,
+            eq(productionOrderLines.technicalSpecId, productTechnicalSpecs.id),
+          )
+          .where(inArray(productionOrderLines.productionOrderId, orderIds))
+          .orderBy(asc(productionOrderLines.createdAt));
+  const linesByOrder = new Map<
+    string,
+    (typeof lineRows)[number][]
+  >();
+  for (const line of lineRows) {
+    const lines = linesByOrder.get(line.productionOrderId) ?? [];
+    lines.push(line);
+    linesByOrder.set(line.productionOrderId, lines);
+  }
+  const orders = orderRows.map((order) => ({
+    ...order,
+    lines: linesByOrder.get(order.id) ?? [],
+  }));
 
   return (
     <main className="min-h-screen px-4 py-5 sm:px-8 sm:py-8">
@@ -125,8 +206,8 @@ export default async function ProductionPage() {
               Production
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-[#758178]">
-              Enregistrez les fabrications, contrôlez le bilan matière et suivez
-              les coûts et les balais disponibles.
+              Fabriquez plusieurs produits dans un ordre, suivez chaque stock
+              fini et contrôlez le bilan matière et les coûts.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -136,7 +217,9 @@ export default async function ProductionPage() {
             <ExportLink href="/api/exports/stock-produits">
               Mouvements de produits finis
             </ExportLink>
-            <ExportLink href="/production/rapport">Rapport imprimable / PDF</ExportLink>
+            <ExportLink href="/production/rapport">
+              Rapport imprimable / PDF
+            </ExportLink>
           </div>
         </header>
 
@@ -144,8 +227,9 @@ export default async function ProductionPage() {
           defaultDate={localDateInputValue(new Date())}
           finishedStock={finishedStock}
           materialStock={materialStock}
-          totalBroomsProduced={productionTotals[0]?.broomsProduced ?? 0}
-          orders={orderRows}
+          totalProductsProduced={productionTotals[0]?.quantity ?? 0}
+          productSpecs={productSpecRows}
+          orders={orders}
         />
       </div>
     </main>

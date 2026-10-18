@@ -2,16 +2,19 @@
 
 ## Statut
 
-Plan validé pour implémentation. Le schéma applicatif existant reste centré
-sur le balai pendant les étapes de migration. Les spécifications techniques
-initiales ne sont pas encore fournies : ne créer aucune valeur métier
-supposée.
+Plan validé pour implémentation. Les commandes et ventes restent centrées sur
+Balai jusqu'à l'étape commerciale. Les spécifications techniques initiales ne
+sont pas encore fournies : ne créer aucune valeur métier supposée.
 
 Première étape livrée : tables catalogue et versions de fiches, produits
 initiaux, permissions de gestion et page `/produits`. La migration `0005` est
-appliquée à Neon et le commit `3b4ff6c` est déployé en production. La production,
-les ventes et les mouvements historiques restent à relier aux produits dans
-les étapes suivantes.
+appliquée à Neon et le commit `3b4ff6c` est déployé en production.
+
+Étape production multi-lignes : le code est prêt et la migration additive
+`0006` est appliquée à Neon. Le backfill a été vérifié sans variation des
+quantités ni des coûts historiques; tests, lint, TypeScript et build sont
+passés. Le déploiement et la validation manuelle restent à faire. Les commandes
+et ventes restent volontairement mono-Balai jusqu'à l'étape suivante.
 
 ## Cible fonctionnelle
 
@@ -65,12 +68,16 @@ recettes par produit, en plus des totaux globaux.
 - `production_orders` reste l'en-tête : date, responsable, type de plastique,
   kg utilisés, pertes et motif, coût matière/kg, main-d'œuvre, énergie,
   accessoires et coût total.
-- Les données devenues propres à une sortie produit (`bandsPreparedKg`,
-  `broomsProduced`) quittent l'en-tête et sont portées par
-  `production_order_lines`.
+- `production_order_lines` porte le produit, sa version de fiche, les bandes,
+  la quantité et les coûts ventilés. Les colonnes historiques
+  `bandsPreparedKg` et `broomsProduced` restent pour compatibilité transitoire
+  avec les clients déployés et les saisies hors ligne existantes; elles
+  enregistrent des agrégats pour les nouveaux ordres.
 - `production_order_lines` : `id`, `production_order_id`, `product_id`,
   `technical_spec_id`, quantité produite, kg de bandes affectés et ventilation
-  manuelle par catégorie (matière/main-d'œuvre/énergie/accessoires).
+  manuelle par catégorie (matière/main-d'œuvre/énergie/accessoires). Les coûts
+  de l'en-tête sont calculés à partir de ces lignes; la somme des coûts matière
+  affectés doit égaler le coût matière calculé au kg utilisé.
   Plusieurs lignes du même produit sont permises lorsqu'elles utilisent des
   fiches techniques ou lots distincts.
 - Le coût de revient unitaire sera calculé par ligne à partir du coût alloué
@@ -132,25 +139,25 @@ revalider le catalogue, les versions techniques et les stocks côté serveur.
 
 ## Étapes de réalisation
 
-1. Écrire les tests de migration/backfill et de non-régression.
-2. Ajouter les tables du catalogue, les fiches versionnées et les permissions
-   de configuration pour l'Administrateur et le Responsable d'atelier.
-3. Transformer la production en en-tête + lignes, avec bilan matière, coûts
-   ventilés manuellement et mouvements de stock par produit.
-4. Transformer commandes et ventes en en-têtes + lignes et sécuriser les
-   sorties de stock multi-produits à la livraison.
-5. Adapter stocks, exports, rapports, sauvegarde et synchronisation hors ligne.
-6. Ajouter le filtre Année, les tonnes équivalentes et les indicateurs par
-   produit au tableau de bord.
-7. Migrer les données existantes vers Balai, lancer les tests, lint et build,
-   vérifier les totaux Neon avant/après, puis proposer le déploiement pour
-   validation manuelle.
+1. Catalogue, fiches versionnées et permissions : livré, migration `0005`
+   appliquée à Neon.
+2. Production en-tête + lignes, bilan matière, ventilation manuelle des coûts
+   et stock fini par produit : code livré et migration `0006` appliquée à Neon;
+   contrôles historiques passés, déploiement et validation manuelle restent à
+   faire.
+3. Commandes et ventes multi-produits, avec sorties de stock par ligne à la
+   livraison.
+4. Tableau de bord : filtre Année/année précise, équivalents en tonnes et
+   indicateurs détaillés par produit.
+5. Déployer l'étape production, valider manuellement les parcours et reprendre
+   ensuite les commandes et ventes multi-produits.
 
 ## Décisions validées
 
 - Les commandes client peuvent contenir plusieurs produits.
 - Les coûts sont ventilés manuellement par ligne et par catégorie; les totaux
-  ventilés doivent concorder avec les totaux de l'ordre.
+  des catégories de l'en-tête sont calculés depuis les lignes. Le coût matière
+  ventilé doit concorder avec le coût calculé au prix par kg de l'ordre.
 - L'Administrateur et le Responsable d'atelier peuvent gérer le catalogue et
   les fiches techniques.
 - Les données techniques exactes des cinq produits ne sont pas encore

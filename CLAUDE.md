@@ -8,8 +8,11 @@ produits finis. Le catalogue cible comprend Balai, Brosse, Brosse à laver avec
 manche, File à linge et Pavé. Interface mobile-first, boutons faciles à
 utiliser et formulaires courts.
 
-Le schéma et les écrans actuellement en place sont encore centrés sur le balai.
-L’évolution multi-produits validée et ses choix sont suivis dans
+Le catalogue multi-produits est en place. La production multi-lignes et les
+stocks finis par produit sont implémentés et migrés dans Neon; déploiement et
+validation manuelle restent à terminer. Les commandes et ventes restent
+provisoirement centrées sur le balai. L’évolution validée et ses choix sont
+suivis dans
 [docs/plan-multi-produits.md](./docs/plan-multi-produits.md); les données
 techniques propres à chaque produit restent à fournir et ne doivent pas être
 inventées.
@@ -51,7 +54,9 @@ inventées.
     stock de chaque produit fini via des mouvements atomiques; le bilan utilisé
     = bandes + pertes est exact au gramme près.
 13. Le coût matière/kg est saisi à chaque ordre de fabrication et ne doit pas
-    être présenté comme un coût d’achat historique moyen.
+    être présenté comme un coût d’achat historique moyen. Pour les ordres
+    multi-produits, la part du coût matière est ventilée par ligne et sa somme
+    doit égaler le coût calculé sur la matière utilisée.
 14. Le stock de chaque produit fini est calculé depuis les mouvements: les
     lignes de production enregistrent des entrées et les lignes livrées des
     sorties atomiquement. Aucun solde de stock n'est saisi directement.
@@ -114,6 +119,14 @@ Balai) et les étapes de réalisation sont décrits dans
 [docs/plan-multi-produits.md](./docs/plan-multi-produits.md). Les coûts sont
 ventilés manuellement par ligne et la configuration catalogue est accessible à
 l'Administrateur et au Responsable d'atelier.
+
+La production multi-lignes utilise les fiches techniques versionnées et débite
+la matière puis crédite le stock de chaque produit dans une seule transaction.
+Les colonnes historiques mono-Balai restent temporairement présentes pour
+garantir la compatibilité avec les clients existants; les nouvelles données
+détaillées sont portées par les lignes de production. La migration `0006` est
+appliquée à Neon et les quantités, coûts et soldes ont été comparés avant/après.
+Ne pas retirer les champs historiques avant la fin de la transition.
 
 ## Commandes
 

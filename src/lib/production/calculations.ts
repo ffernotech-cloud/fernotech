@@ -24,6 +24,16 @@ function scaledIntegerToDecimal(value: bigint, scale: number): string {
   return `${whole}.${fraction}`;
 }
 
+export function sumProductionBandsKg(
+  lines: ReadonlyArray<{ bandsPreparedKg: string }>,
+): string {
+  const totalMilliKg = lines.reduce(
+    (sum, line) => sum + decimalToScaledInteger(line.bandsPreparedKg, 3),
+    BigInt(0),
+  );
+  return scaledIntegerToDecimal(totalMilliKg, 3);
+}
+
 export function productionBalanceIsValid({
   materialUsedKg,
   bandsPreparedKg,
@@ -33,6 +43,25 @@ export function productionBalanceIsValid({
     decimalToScaledInteger(materialUsedKg, 3) ===
     decimalToScaledInteger(bandsPreparedKg, 3) +
       decimalToScaledInteger(lossKg, 3)
+  );
+}
+
+export function productionLinesBalanceIsValid({
+  materialUsedKg,
+  lines,
+  lossKg,
+}: {
+  materialUsedKg: string;
+  lines: ReadonlyArray<{ bandsPreparedKg: string }>;
+  lossKg: string;
+}): boolean {
+  const bandsMilliKg = lines.reduce(
+    (sum, line) => sum + decimalToScaledInteger(line.bandsPreparedKg, 3),
+    BigInt(0),
+  );
+  return (
+    decimalToScaledInteger(materialUsedKg, 3) ===
+    bandsMilliKg + decimalToScaledInteger(lossKg, 3)
   );
 }
 
@@ -56,14 +85,88 @@ export type ProductionCostInputs = {
   laborCost: string;
   energyCost: string;
   accessoriesCost: string;
-  broomsProduced: number;
+  quantityProduced: number;
 };
 
 export type ProductionCosts = {
   materialCost: string;
   totalCost: string;
-  costPerBroom: string;
+  costPerUnit: string;
 };
+
+export type ProductionCostAllocation = {
+  materialCost: string;
+  laborCost: string;
+  energyCost: string;
+  accessoriesCost: string;
+};
+
+export function productionCostTotals(
+  lines: ReadonlyArray<ProductionCostAllocation>,
+): ProductionCostAllocation {
+  const categories = [
+    "materialCost",
+    "laborCost",
+    "energyCost",
+    "accessoriesCost",
+  ] as const;
+  return Object.fromEntries(
+    categories.map((category) => [
+      category,
+      scaledIntegerToDecimal(
+        lines.reduce(
+          (sum, line) => sum + decimalToScaledInteger(line[category], 2),
+          BigInt(0),
+        ),
+        2,
+      ),
+    ]),
+  ) as ProductionCostAllocation;
+}
+
+export function productionCostAllocationMatches(
+  totals: ProductionCostAllocation,
+  lines: ReadonlyArray<ProductionCostAllocation>,
+): boolean {
+  const categories = [
+    "materialCost",
+    "laborCost",
+    "energyCost",
+    "accessoriesCost",
+  ] as const;
+  return categories.every((category) => {
+    const allocatedCents = lines.reduce(
+      (sum, line) => sum + decimalToScaledInteger(line[category], 2),
+      BigInt(0),
+    );
+    return allocatedCents === decimalToScaledInteger(totals[category], 2);
+  });
+}
+
+export function calculateProductionLineTotalCost(
+  costs: ProductionCostAllocation,
+): string {
+  const totalCents =
+    decimalToScaledInteger(costs.materialCost, 2) +
+    decimalToScaledInteger(costs.laborCost, 2) +
+    decimalToScaledInteger(costs.energyCost, 2) +
+    decimalToScaledInteger(costs.accessoriesCost, 2);
+  return scaledIntegerToDecimal(totalCents, 2);
+}
+
+export function calculateUnitProductionCost(
+  totalCost: string,
+  quantityProduced: number,
+): string {
+  if (!Number.isSafeInteger(quantityProduced) || quantityProduced <= 0) {
+    throw new Error("La quantité produite doit être un entier positif.");
+  }
+  const totalCostCents = decimalToScaledInteger(totalCost, 2);
+  const unitCostCents =
+    (totalCostCents + BigInt(Math.floor(quantityProduced / 2))) /
+    BigInt(quantityProduced);
+  return scaledIntegerToDecimal(unitCostCents, 2);
+}
 
 export function calculateProductionCosts({
   materialUsedKg,
@@ -71,10 +174,10 @@ export function calculateProductionCosts({
   laborCost,
   energyCost,
   accessoriesCost,
-  broomsProduced,
+  quantityProduced,
 }: ProductionCostInputs): ProductionCosts {
-  if (!Number.isSafeInteger(broomsProduced) || broomsProduced <= 0) {
-    throw new Error("Le nombre de balais doit être un entier positif.");
+  if (!Number.isSafeInteger(quantityProduced) || quantityProduced <= 0) {
+    throw new Error("La quantité fabriquée doit être un entier positif.");
   }
 
   const materialCostCents =
@@ -87,14 +190,13 @@ export function calculateProductionCosts({
     decimalToScaledInteger(energyCost, 2) +
     decimalToScaledInteger(accessoriesCost, 2);
   const totalCostCents = materialCostCents + otherCostsCents;
-  const costPerBroomCents =
-    (totalCostCents + BigInt(Math.floor(broomsProduced / 2))) /
-    BigInt(broomsProduced);
-
   return {
     materialCost: scaledIntegerToDecimal(materialCostCents, 2),
     totalCost: scaledIntegerToDecimal(totalCostCents, 2),
-    costPerBroom: scaledIntegerToDecimal(costPerBroomCents, 2),
+    costPerUnit: calculateUnitProductionCost(
+      scaledIntegerToDecimal(totalCostCents, 2),
+      quantityProduced,
+    ),
   };
 }
 
