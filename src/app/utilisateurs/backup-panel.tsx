@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 const fieldClass =
-  "min-h-12 w-full rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15";
+  "min-h-12 w-full rounded-xl border border-[#dbe3ec] bg-white px-4 text-sm text-[#17212b] outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15";
 
 export function BackupPanel() {
   const [pending, setPending] = useState(false);
@@ -79,8 +79,8 @@ export function BackupPanel() {
   }
 
   return (
-    <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-[#193b29]">
+    <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm">
+      <h2 className="text-lg font-semibold text-[#17212b]">
         Sauvegarde complète de la base
       </h2>
       <p className="mt-2 text-sm leading-6 text-[#65736a]">
@@ -94,7 +94,7 @@ export function BackupPanel() {
         className="mt-4 grid gap-4 sm:grid-cols-2"
         id="backup-form"
       >
-        <label className="text-sm font-semibold text-[#314a39]">
+        <label className="text-sm font-semibold text-[#28384d]">
           Phrase secrète (12 caractères minimum)
           <input
             autoComplete="new-password"
@@ -106,7 +106,7 @@ export function BackupPanel() {
             type="password"
           />
         </label>
-        <label className="text-sm font-semibold text-[#314a39]">
+        <label className="text-sm font-semibold text-[#28384d]">
           Confirmer la phrase secrète
           <input
             autoComplete="new-password"
@@ -120,7 +120,7 @@ export function BackupPanel() {
         </label>
         <div className="sm:col-span-2">
           <button
-            className="min-h-12 rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60"
+            className="min-h-12 rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60"
             disabled={pending}
             type="submit"
           >
@@ -129,7 +129,7 @@ export function BackupPanel() {
           {message ? (
             <p
               aria-live="polite"
-              className={`mt-3 text-sm ${error ? "text-[#9a342a]" : "text-[#286542]"}`}
+              className={`mt-3 text-sm ${error ? "text-[#9a342a]" : "text-[#0b428a]"}`}
               role={error ? "alert" : "status"}
             >
               {message}

@@ -30,10 +30,10 @@ type TechnicalSpecRow = {
 };
 
 const fieldClass =
-  "min-h-11 w-full rounded-xl border border-[#d9e4da] bg-white px-3 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15";
-const labelClass = "mb-1.5 block text-sm font-semibold text-[#314a39]";
+  "min-h-11 w-full rounded-xl border border-[#dbe3ec] bg-white px-3 text-sm text-[#17212b] outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15";
+const labelClass = "mb-1.5 block text-sm font-semibold text-[#28384d]";
 const buttonClass =
-  "min-h-11 rounded-xl bg-[#205d39] px-4 py-2 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60";
+  "min-h-11 rounded-xl bg-[#0b428a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60";
 
 function ActionFeedback({ state }: { state: ProductActionState }) {
   if (state.error) {
@@ -45,7 +45,7 @@ function ActionFeedback({ state }: { state: ProductActionState }) {
   }
   if (state.message) {
     return (
-      <p aria-live="polite" className="text-sm text-[#286542]" role="status">
+      <p aria-live="polite" className="text-sm text-[#0b428a]" role="status">
         {state.message}
       </p>
     );
@@ -56,8 +56,8 @@ function ActionFeedback({ state }: { state: ProductActionState }) {
 function CreateProductForm() {
   const [state, formAction, pending] = useActionState(createProduct, {});
   return (
-    <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-[#193b29]">Ajouter un produit</h2>
+    <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm">
+      <h2 className="text-lg font-semibold text-[#17212b]">Ajouter un produit</h2>
       <form action={formAction} className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
           <label className={labelClass} htmlFor="new-product-code">
@@ -158,13 +158,13 @@ function ProductCard({
     .sort((left, right) => right.version - left.version);
   const latestSpec = productSpecs[0];
   return (
-    <article className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm">
+    <article className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-[#758178]">
             {product.code}
           </p>
-          <h3 className="mt-1 text-lg font-semibold text-[#193b29]">
+          <h3 className="mt-1 text-lg font-semibold text-[#17212b]">
             {product.name}
           </h3>
           <p className="mt-1 text-sm text-[#758178]">
@@ -179,7 +179,7 @@ function ProductCard({
             value={product.isActive ? "false" : "true"}
           />
           <button
-            className="min-h-10 rounded-lg border border-[#d9e4da] px-3 py-2 text-xs font-semibold text-[#205d39] hover:bg-[#edf5ef] disabled:opacity-60"
+            className="min-h-10 rounded-lg border border-[#dbe3ec] px-3 py-2 text-xs font-semibold text-[#0b428a] hover:bg-[#eaf1fa] disabled:opacity-60"
             disabled={activePending}
             type="submit"
           >
@@ -194,7 +194,7 @@ function ProductCard({
       </header>
 
       <details className="mt-5 border-t border-[#edf1ed] pt-4">
-        <summary className="cursor-pointer text-sm font-semibold text-[#205d39]">
+        <summary className="cursor-pointer text-sm font-semibold text-[#0b428a]">
           Modifier la fiche produit
         </summary>
         <form action={updateAction} className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -266,11 +266,11 @@ function ProductCard({
       </details>
 
       <section className="mt-5 border-t border-[#edf1ed] pt-4">
-        <h4 className="text-sm font-semibold text-[#264432]">
+        <h4 className="text-sm font-semibold text-[#26374b]">
           Fiches techniques
         </h4>
         {latestSpec ? (
-          <div className="mt-2 rounded-xl bg-[#f6f9f6] p-3 text-sm text-[#52685a]">
+          <div className="mt-2 rounded-xl bg-[#f6f8fb] p-3 text-sm text-[#52685a]">
             <p className="font-semibold">
               Version {latestSpec.version}
               {latestSpec.effectiveFrom
@@ -304,7 +304,7 @@ function ProductCard({
               ne sont pas écrasées.
             </p>
             {productSpecs.slice(1).map((spec) => (
-              <details className="mt-2 rounded-lg border border-[#e3ebe4] p-3" key={spec.id}>
+              <details className="mt-2 rounded-lg border border-[#e3e9f0] p-3" key={spec.id}>
                 <summary className="cursor-pointer text-sm font-semibold text-[#52685a]">
                   Version {spec.version}
                   {spec.effectiveFrom
@@ -332,7 +332,7 @@ function ProductCard({
           </div>
         ) : null}
         <details className="mt-3">
-          <summary className="cursor-pointer text-sm font-semibold text-[#205d39]">
+          <summary className="cursor-pointer text-sm font-semibold text-[#0b428a]">
             Ajouter une nouvelle version
           </summary>
           <form action={specAction} className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -414,7 +414,7 @@ export function ProductManagement({
       <CreateProductForm />
       <section aria-labelledby="catalogue-list-title">
         <h2
-          className="mb-3 text-lg font-semibold text-[#193b29]"
+          className="mb-3 text-lg font-semibold text-[#17212b]"
           id="catalogue-list-title"
         >
           Produits du catalogue ({products.length})

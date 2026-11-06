@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { LoginForm } from "@/app/connexion/login-form";
 
 export const metadata: Metadata = {
@@ -15,21 +16,22 @@ export default async function LoginPage({
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-8">
-      <section className="w-full max-w-md rounded-3xl border border-[#e3ebe4] bg-white p-6 shadow-sm sm:p-9">
+      <section className="relative w-full max-w-md overflow-hidden rounded-3xl border border-[#e3e9f0] bg-white p-6 shadow-sm sm:p-9">
+        <div aria-hidden="true" className="brand-color-bar absolute inset-x-0 top-0 h-1" />
         <Link className="inline-flex items-center gap-3" href="/">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-[#e9f4ec] text-xl text-[#23643e]">
-            <span aria-hidden="true">✳</span>
-          </span>
-          <span>
-            <span className="block text-sm font-bold tracking-[0.12em] text-[#173c29]">
-              FERNOTECH
-            </span>
-            <span className="block text-xs font-medium text-[#728078]">
-              ECO-TRACK
-            </span>
+          <Image
+            alt="Logo FERNOTECH"
+            className="size-20 rounded-xl border border-[#dbe3ec] bg-white object-contain p-1"
+            height={768}
+            priority
+            src="/fernotech-logo.png"
+            width={768}
+          />
+          <span className="text-sm font-bold tracking-[0.12em] text-[#17212b]">
+            ECO-TRACK
           </span>
         </Link>
-        <h1 className="mt-8 text-2xl font-semibold tracking-tight text-[#193b29]">
+        <h1 className="mt-8 text-2xl font-semibold tracking-tight text-[#17212b]">
           Connexion à votre espace
         </h1>
         <p className="mt-2 text-sm leading-6 text-[#758178]">

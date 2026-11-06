@@ -1,4 +1,4 @@
-const CACHE_NAME = "fernotech-offline-v2";
+const CACHE_NAME = "fernotech-offline-v3";
 const OFFLINE_URL = "/hors-ligne.html";
 const OFFLINE_SCRIPT = "/offline-app.js";
 
@@ -6,7 +6,9 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll([OFFLINE_URL, OFFLINE_SCRIPT])),
+      .then((cache) =>
+        cache.addAll([OFFLINE_URL, OFFLINE_SCRIPT, "/fernotech-logo.png"]),
+      ),
   );
   self.skipWaiting();
 });

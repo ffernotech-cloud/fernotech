@@ -10,14 +10,14 @@ export function LoginForm() {
     <form action={action} className="mt-7 space-y-5">
       <div>
         <label
-          className="mb-2 block text-sm font-semibold text-[#264432]"
+          className="mb-2 block text-sm font-semibold text-[#26374b]"
           htmlFor="identifier"
         >
           Identifiant
         </label>
         <input
           autoComplete="username"
-          className="min-h-12 w-full rounded-xl border border-[#d9e4da] bg-white px-4 text-base text-[#193b29] outline-none transition focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+          className="min-h-12 w-full rounded-xl border border-[#dbe3ec] bg-white px-4 text-base text-[#17212b] outline-none transition focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15"
           id="identifier"
           maxLength={32}
           name="identifier"
@@ -27,14 +27,14 @@ export function LoginForm() {
       </div>
       <div>
         <label
-          className="mb-2 block text-sm font-semibold text-[#264432]"
+          className="mb-2 block text-sm font-semibold text-[#26374b]"
           htmlFor="password"
         >
           Mot de passe
         </label>
         <input
           autoComplete="current-password"
-          className="min-h-12 w-full rounded-xl border border-[#d9e4da] bg-white px-4 text-base text-[#193b29] outline-none transition focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+          className="min-h-12 w-full rounded-xl border border-[#dbe3ec] bg-white px-4 text-base text-[#17212b] outline-none transition focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15"
           id="password"
           name="password"
           required
@@ -51,7 +51,7 @@ export function LoginForm() {
         </p>
       ) : null}
       <button
-        className="min-h-12 w-full rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#17472e] disabled:cursor-wait disabled:opacity-60"
+        className="min-h-12 w-full rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#16345d] disabled:cursor-wait disabled:opacity-60"
         disabled={pending}
         type="submit"
       >

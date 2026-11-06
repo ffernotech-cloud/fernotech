@@ -8,6 +8,10 @@ export const metadata: Metadata = {
     "Suivez la collecte, la transformation et la vente de plastique recyclé.",
   applicationName: "FERNOTECH ECO-TRACK",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/fernotech-logo.png",
+  },
   appleWebApp: {
     capable: true,
     title: "ECO-TRACK",
@@ -16,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#286542",
+  themeColor: "#0b428a",
 };
 
 export default function RootLayout({

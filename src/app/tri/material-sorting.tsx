@@ -35,8 +35,8 @@ type MovementRow = {
 };
 
 const inputClass =
-  "min-h-12 w-full rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15";
-const labelClass = "mb-2 block text-sm font-semibold text-[#314a39]";
+  "min-h-12 w-full rounded-xl border border-[#dbe3ec] bg-white px-4 text-sm text-[#17212b] outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15";
+const labelClass = "mb-2 block text-sm font-semibold text-[#28384d]";
 
 function Feedback({ state }: { state: SortingActionState }) {
   if (state.error) {
@@ -50,7 +50,7 @@ function Feedback({ state }: { state: SortingActionState }) {
     return (
       <p
         aria-live="polite"
-        className="mt-2 text-sm text-[#286542]"
+        className="mt-2 text-sm text-[#0b428a]"
         role="status"
       >
         {state.message}
@@ -115,7 +115,7 @@ function SortForm({ delivery }: { delivery: DeliveryRow }) {
         </p>
         <Feedback state={state} />
         <button
-          className="mt-3 min-h-12 w-full rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60 sm:w-auto"
+          className="mt-3 min-h-12 w-full rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60 sm:w-auto"
           disabled={pending}
           type="submit"
         >
@@ -140,7 +140,7 @@ function IntegrateButton({ delivery }: { delivery: DeliveryRow }) {
       </p>
       <Feedback state={state} />
       <button
-        className="mt-3 min-h-12 w-full rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60 sm:w-auto"
+        className="mt-3 min-h-12 w-full rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60 sm:w-auto"
         disabled={pending}
         type="submit"
       >
@@ -172,33 +172,33 @@ function DeliveryCard({ delivery }: { delivery: DeliveryRow }) {
         : "Intégrée au stock";
 
   return (
-    <li className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm">
+    <li className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="font-semibold text-[#193b29]">
+          <h3 className="font-semibold text-[#17212b]">
             {delivery.collectorName}
           </h3>
           <p className="mt-1 text-sm text-[#65736a]">
             {displayDate(delivery.deliveryDate)} · {delivery.collectionPoint}
           </p>
-          <p className="mt-1 text-sm font-medium text-[#286542]">
+          <p className="mt-1 text-sm font-medium text-[#0b428a]">
             {delivery.plasticType}
           </p>
         </div>
-        <span className="rounded-full bg-[#edf5ef] px-3 py-1 text-xs font-semibold text-[#286542]">
+        <span className="rounded-full bg-[#eaf1fa] px-3 py-1 text-xs font-semibold text-[#0b428a]">
           {status}
         </span>
       </div>
-      <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-[#f6f9f6] p-3 text-center">
+      <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-[#f6f8fb] p-3 text-center">
         <div>
           <dt className="text-xs text-[#758178]">Reçu</dt>
-          <dd className="mt-1 text-sm font-semibold text-[#193b29]">
+          <dd className="mt-1 text-sm font-semibold text-[#17212b]">
             {kilogramsLabel(Number(delivery.receivedKg))} kg
           </dd>
         </div>
         <div>
           <dt className="text-xs text-[#758178]">Accepté</dt>
-          <dd className="mt-1 text-sm font-semibold text-[#193b29]">
+          <dd className="mt-1 text-sm font-semibold text-[#17212b]">
             {delivery.acceptedKg === null
               ? "—"
               : `${kilogramsLabel(Number(delivery.acceptedKg))} kg`}
@@ -206,7 +206,7 @@ function DeliveryCard({ delivery }: { delivery: DeliveryRow }) {
         </div>
         <div>
           <dt className="text-xs text-[#758178]">Rejeté</dt>
-          <dd className="mt-1 text-sm font-semibold text-[#193b29]">
+          <dd className="mt-1 text-sm font-semibold text-[#17212b]">
             {delivery.rejectedKg === null
               ? "—"
               : `${kilogramsLabel(Number(delivery.rejectedKg))} kg`}
@@ -233,7 +233,7 @@ function DeliveryCard({ delivery }: { delivery: DeliveryRow }) {
 function StockSummary({ rows }: { rows: MaterialStockRow[] }) {
   if (rows.length === 0) {
     return (
-      <p className="mt-4 rounded-xl bg-[#f6f9f6] px-4 py-5 text-sm leading-6 text-[#65736a]">
+      <p className="mt-4 rounded-xl bg-[#f6f8fb] px-4 py-5 text-sm leading-6 text-[#65736a]">
         Aucun plastique accepté n’a encore été intégré au stock.
       </p>
     );
@@ -243,11 +243,11 @@ function StockSummary({ rows }: { rows: MaterialStockRow[] }) {
     <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {rows.map((row) => (
         <li
-          className="rounded-xl bg-[#f6f9f6] p-4"
+          className="rounded-xl bg-[#f6f8fb] p-4"
           key={row.plasticType}
         >
           <p className="text-sm font-medium text-[#65736a]">{row.plasticType}</p>
-          <p className="mt-2 text-xl font-semibold text-[#193b29]">
+          <p className="mt-2 text-xl font-semibold text-[#17212b]">
             {kilogramsLabel(row.quantityKg)} kg
           </p>
         </li>
@@ -273,7 +273,7 @@ function MovementHistory({ movements }: { movements: MovementRow[] }) {
           key={movement.id}
         >
           <div>
-            <p className="font-semibold text-[#193b29]">
+            <p className="font-semibold text-[#17212b]">
               {movement.plasticType} ·{" "}
               {movement.movementType === "entree" ? "Entrée" : "Sortie"}
             </p>
@@ -288,7 +288,7 @@ function MovementHistory({ movements }: { movements: MovementRow[] }) {
               Enregistré le {displayTimestamp(movement.createdAt)}
             </p>
           </div>
-          <p className="text-sm font-semibold text-[#193b29]">
+          <p className="text-sm font-semibold text-[#17212b]">
             {movement.movementType === "entree" ? "+" : "−"}
             {kilogramsLabel(Number(movement.quantityKg))} kg
           </p>
@@ -319,8 +319,8 @@ export function MaterialSorting({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Stock matière disponible
         </h2>
         <p className="mt-1 text-sm text-[#758178]">
@@ -329,8 +329,8 @@ export function MaterialSorting({
         <StockSummary rows={materialStock} />
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">À trier</h2>
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">À trier</h2>
         <p className="mt-1 text-sm text-[#758178]">
           Saisissez les kilos acceptés et rejetés et expliquez tout rejet.
         </p>
@@ -347,8 +347,8 @@ export function MaterialSorting({
         )}
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Triés · à intégrer au stock
         </h2>
         <p className="mt-1 text-sm text-[#758178]">
@@ -368,8 +368,8 @@ export function MaterialSorting({
         )}
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Mouvements de stock matière
         </h2>
         <p className="mt-1 text-sm text-[#758178]">
@@ -378,8 +378,8 @@ export function MaterialSorting({
         <MovementHistory movements={movements} />
       </section>
 
-      <details className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <summary className="cursor-pointer text-lg font-semibold text-[#193b29]">
+      <details className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <summary className="cursor-pointer text-lg font-semibold text-[#17212b]">
           Apports déjà intégrés ({completed.length})
         </summary>
         {completed.length === 0 ? (

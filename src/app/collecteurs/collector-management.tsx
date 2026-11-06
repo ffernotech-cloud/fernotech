@@ -43,8 +43,8 @@ type DeliverySummary = {
 type ActiveCollector = { id: string; name: string };
 
 const fieldClass =
-  "min-h-12 w-full rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15";
-const labelClass = "mb-2 block text-sm font-semibold text-[#314a39]";
+  "min-h-12 w-full rounded-xl border border-[#dbe3ec] bg-white px-4 text-sm text-[#17212b] outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15";
+const labelClass = "mb-2 block text-sm font-semibold text-[#28384d]";
 
 function ActionFeedback({ state }: { state: CollectorActionState }) {
   if (state.error) {
@@ -58,7 +58,7 @@ function ActionFeedback({ state }: { state: CollectorActionState }) {
     return (
       <p
         aria-live="polite"
-        className="mt-2 text-sm text-[#286542]"
+        className="mt-2 text-sm text-[#0b428a]"
         role="status"
       >
         {state.message}
@@ -145,7 +145,7 @@ function CreateCollectorForm() {
       <div className="sm:col-span-2">
         <ActionFeedback state={state} />
         <button
-          className="mt-2 min-h-12 w-full rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60 sm:w-auto"
+          className="mt-2 min-h-12 w-full rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60 sm:w-auto"
           disabled={pending}
           type="submit"
         >
@@ -165,7 +165,7 @@ function RecordDeliveryForm({
 
   if (collectors.length === 0) {
     return (
-      <p className="rounded-xl bg-[#f6f9f6] px-4 py-3 text-sm leading-6 text-[#65736a]">
+      <p className="rounded-xl bg-[#f6f8fb] px-4 py-3 text-sm leading-6 text-[#65736a]">
         Ajoutez ou réactivez un collecteur avant d’enregistrer un apport.
       </p>
     );
@@ -260,7 +260,7 @@ function RecordDeliveryForm({
       <div className="sm:col-span-2">
         <ActionFeedback state={state} />
         <button
-          className="mt-2 min-h-12 w-full rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60 sm:w-auto"
+          className="mt-2 min-h-12 w-full rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60 sm:w-auto"
           disabled={pending}
           type="submit"
         >
@@ -285,17 +285,17 @@ function CollectorCard({
   );
 
   return (
-    <li className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm">
+    <li className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <span
               aria-label={`Rang ${rank}`}
-              className="flex size-7 items-center justify-center rounded-full bg-[#edf5ef] text-xs font-bold text-[#286542]"
+              className="flex size-7 items-center justify-center rounded-full bg-[#eaf1fa] text-xs font-bold text-[#0b428a]"
             >
               {rank}
             </span>
-            <h3 className="text-base font-semibold text-[#193b29]">
+            <h3 className="text-base font-semibold text-[#17212b]">
               {collector.name}
             </h3>
           </div>
@@ -305,7 +305,7 @@ function CollectorCard({
           </p>
           {collector.phone ? (
             <a
-              className="mt-1 inline-block text-sm font-medium text-[#286542] hover:underline"
+              className="mt-1 inline-block text-sm font-medium text-[#0b428a] hover:underline"
               href={`tel:${collector.phone}`}
             >
               {collector.phone}
@@ -315,7 +315,7 @@ function CollectorCard({
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${
             collector.isActive
-              ? "bg-[#edf5ef] text-[#286542]"
+              ? "bg-[#eaf1fa] text-[#0b428a]"
               : "bg-[#f2f2f0] text-[#70756f]"
           }`}
         >
@@ -323,22 +323,22 @@ function CollectorCard({
         </span>
       </div>
 
-      <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-[#f6f9f6] p-3 text-center">
+      <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-[#f6f8fb] p-3 text-center">
         <div>
           <dt className="text-xs text-[#758178]">Livraisons</dt>
-          <dd className="mt-1 font-semibold text-[#193b29]">
+          <dd className="mt-1 font-semibold text-[#17212b]">
             {collector.deliveryCount}
           </dd>
         </div>
         <div>
           <dt className="text-xs text-[#758178]">Reçu</dt>
-          <dd className="mt-1 text-sm font-semibold text-[#193b29]">
+          <dd className="mt-1 text-sm font-semibold text-[#17212b]">
             {kilogramsLabel(collector.receivedKg)} kg
           </dd>
         </div>
         <div>
           <dt className="text-xs text-[#758178]">Accepté</dt>
-          <dd className="mt-1 text-sm font-semibold text-[#193b29]">
+          <dd className="mt-1 text-sm font-semibold text-[#17212b]">
             {kilogramsLabel(collector.acceptedKg)} kg
           </dd>
         </div>
@@ -365,7 +365,7 @@ function CollectorCard({
             value={collector.isActive ? "false" : "true"}
           />
           <button
-            className="min-h-11 rounded-xl border border-[#d9e4da] px-3 py-2 text-sm font-semibold text-[#526258] hover:bg-[#f6f9f6] disabled:opacity-60"
+            className="min-h-11 rounded-xl border border-[#dbe3ec] px-3 py-2 text-sm font-semibold text-[#526173] hover:bg-[#f6f8fb] disabled:opacity-60"
             disabled={activePending}
             type="submit"
           >
@@ -376,7 +376,7 @@ function CollectorCard({
       </div>
 
       <details className="mt-3 border-t border-[#e8eee8] pt-3">
-        <summary className="cursor-pointer py-2 text-sm font-semibold text-[#286542]">
+        <summary className="cursor-pointer py-2 text-sm font-semibold text-[#0b428a]">
           Modifier la fiche
         </summary>
         <form action={editAction} className="mt-3 grid gap-4 sm:grid-cols-2">
@@ -452,7 +452,7 @@ function CollectorCard({
           <div className="sm:col-span-2">
             <ActionFeedback state={editState} />
             <button
-              className="min-h-11 rounded-xl bg-[#205d39] px-4 py-2 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60"
+              className="min-h-11 rounded-xl bg-[#0b428a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60"
               disabled={editPending}
               type="submit"
             >
@@ -472,7 +472,7 @@ function displayDate(value: string): string {
 function DeliveryHistory({ deliveries }: { deliveries: DeliverySummary[] }) {
   if (deliveries.length === 0) {
     return (
-      <p className="mt-4 rounded-xl bg-[#f6f9f6] px-4 py-5 text-sm leading-6 text-[#65736a]">
+      <p className="mt-4 rounded-xl bg-[#f6f8fb] px-4 py-5 text-sm leading-6 text-[#65736a]">
         Aucun apport enregistré pour le moment. Les nouveaux apports
         apparaîtront ici et seront pris en compte dans les totaux des
         collecteurs.
@@ -488,7 +488,7 @@ function DeliveryHistory({ deliveries }: { deliveries: DeliverySummary[] }) {
           key={delivery.id}
         >
           <div>
-            <p className="font-semibold text-[#193b29]">
+            <p className="font-semibold text-[#17212b]">
               {delivery.collectorName}
               <span className="font-normal text-[#758178]">
                 {" "}
@@ -512,7 +512,7 @@ function DeliveryHistory({ deliveries }: { deliveries: DeliverySummary[] }) {
                 : ""}
             </p>
           </div>
-          <p className="text-base font-semibold text-[#193b29]">
+          <p className="text-base font-semibold text-[#17212b]">
             {kilogramsLabel(delivery.receivedKg)} kg reçus
           </p>
         </li>
@@ -533,8 +533,8 @@ export function CollectorManagement({
   return (
     <div className="space-y-6">
       <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-          <h2 className="text-lg font-semibold text-[#193b29]">
+        <div className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+          <h2 className="text-lg font-semibold text-[#17212b]">
             Ajouter un collecteur
           </h2>
           <p className="mb-5 mt-1 text-sm leading-6 text-[#758178]">
@@ -542,8 +542,8 @@ export function CollectorManagement({
           </p>
           <CreateCollectorForm />
         </div>
-        <div className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-          <h2 className="text-lg font-semibold text-[#193b29]">
+        <div className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+          <h2 className="text-lg font-semibold text-[#17212b]">
             Enregistrer un apport reçu
           </h2>
           <p className="mb-5 mt-1 text-sm leading-6 text-[#758178]">
@@ -554,10 +554,10 @@ export function CollectorManagement({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h2 className="text-lg font-semibold text-[#193b29]">
+            <h2 className="text-lg font-semibold text-[#17212b]">
               Classement des collecteurs
             </h2>
             <p className="mt-1 text-sm text-[#758178]">
@@ -569,7 +569,7 @@ export function CollectorManagement({
           </span>
         </div>
         {collectors.length === 0 ? (
-          <p className="mt-4 rounded-xl bg-[#f6f9f6] px-4 py-5 text-sm text-[#65736a]">
+          <p className="mt-4 rounded-xl bg-[#f6f8fb] px-4 py-5 text-sm text-[#65736a]">
             Aucun collecteur pour le moment. Ajoutez votre premier collecteur
             ci-dessus.
           </p>
@@ -586,8 +586,8 @@ export function CollectorManagement({
         )}
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Historique des apports
         </h2>
         <p className="mt-1 text-sm text-[#758178]">

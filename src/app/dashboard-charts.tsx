@@ -43,7 +43,7 @@ export function DashboardCharts({
     <section aria-labelledby="evolution-title">
       <div className="mb-4">
         <h2
-          className="text-lg font-semibold text-[#193b29]"
+          className="text-lg font-semibold text-[#17212b]"
           id="evolution-title"
         >
           Évolution mensuelle
@@ -53,8 +53,8 @@ export function DashboardCharts({
         </p>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-2xl border border-[#e3ebe4] bg-white p-4 shadow-sm sm:p-5">
-          <h3 className="mb-4 text-sm font-semibold text-[#264432]">
+        <article className="rounded-2xl border border-[#e3e9f0] bg-white p-4 shadow-sm sm:p-5">
+          <h3 className="mb-4 text-sm font-semibold text-[#26374b]">
             Plastique accepté et transformé
           </h3>
           <div aria-label="Courbes mensuelles des kilogrammes acceptés et transformés" role="img">
@@ -78,9 +78,9 @@ export function DashboardCharts({
                 />
                 <Tooltip
                   formatter={(value) => formatKilograms(Number(value))}
-                  labelStyle={{ color: "#193b29" }}
+                  labelStyle={{ color: "#17212b" }}
                   contentStyle={{
-                    borderColor: "#d9e7dc",
+                    borderColor: "#dbe3ec",
                     borderRadius: 12,
                   }}
                 />
@@ -105,8 +105,8 @@ export function DashboardCharts({
             </ResponsiveContainer>
           </div>
         </article>
-        <article className="rounded-2xl border border-[#e3ebe4] bg-white p-4 shadow-sm sm:p-5">
-          <h3 className="mb-4 text-sm font-semibold text-[#264432]">
+        <article className="rounded-2xl border border-[#e3e9f0] bg-white p-4 shadow-sm sm:p-5">
+          <h3 className="mb-4 text-sm font-semibold text-[#26374b]">
             Produits fabriqués et vendus (unités)
           </h3>
           <div aria-label="Courbes mensuelles des produits fabriqués et vendus" role="img">
@@ -130,9 +130,9 @@ export function DashboardCharts({
                 />
                 <Tooltip
                   formatter={(value) => `${numberFormat.format(Number(value))} unité(s)`}
-                  labelStyle={{ color: "#193b29" }}
+                  labelStyle={{ color: "#17212b" }}
                   contentStyle={{
-                    borderColor: "#d9e7dc",
+                    borderColor: "#dbe3ec",
                     borderRadius: 12,
                   }}
                 />

@@ -3,15 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#286542" />
+    <meta name="theme-color" content="#0b428a" />
     <meta name="description" content="Espace de préparation et de saisie hors ligne FERNOTECH ECO-TRACK." />
     <title>Espace hors ligne · FERNOTECH ECO-TRACK</title>
     <style>
       :root {
         color-scheme: light;
         font-family: Arial, Helvetica, sans-serif;
-        background: #f4f7f4;
-        color: #193b29;
+        background: #f6f8fb;
+        color: #17212b;
       }
       * { box-sizing: border-box; }
       body { margin: 0; padding: 1rem; }
@@ -23,10 +23,20 @@
         padding: 1rem;
         margin-bottom: 1rem;
       }
+      header { position: relative; overflow: hidden; }
+      header::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto;
+        height: 4px;
+        background: linear-gradient(90deg, #063b8c 0 25%, #ed3027 25% 50%, #ffb81c 50% 75%, #129447 75% 100%);
+      }
+      .brand-row { display: flex; align-items: center; gap: 1rem; }
+      .brand-logo { display: block; width: 6rem; height: 6rem; object-fit: contain; border: 1px solid #dbe3ec; border-radius: .75rem; }
       h1 { margin: .35rem 0; font-size: 1.5rem; }
       h2 { margin-top: 0; font-size: 1.15rem; }
       .muted { color: #65736a; font-size: .9rem; line-height: 1.5; }
-      .brand { color: #286542; font-size: .75rem; font-weight: 700; letter-spacing: .15em; }
+      .brand { color: #0b428a; font-size: .75rem; font-weight: 700; letter-spacing: .15em; }
       .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
       .grid { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
       label { display: grid; gap: .35rem; font-size: .85rem; font-weight: 700; }
@@ -36,22 +46,22 @@
         border: 1px solid #d4e0d6;
         border-radius: .75rem;
         background: #fff;
-        color: #193b29;
+        color: #17212b;
         padding: .7rem .8rem;
         font: inherit;
       }
       textarea { min-height: 5rem; }
-      button { width: auto; cursor: pointer; background: #205d39; color: white; border-color: #205d39; font-weight: 700; }
-      button.secondary { background: #fff; color: #205d39; }
+      button { width: auto; cursor: pointer; background: #0b428a; color: white; border-color: #0b428a; font-weight: 700; }
+      button.secondary { background: #fff; color: #0b428a; }
       button.danger { background: #fff; color: #9a342a; border-color: #dfc9c6; }
       button:disabled { opacity: .55; cursor: not-allowed; }
-      .status { display: inline-flex; gap: .4rem; align-items: center; border-radius: 2rem; background: #edf5ef; padding: .4rem .7rem; font-size: .8rem; font-weight: 700; }
+      .status { display: inline-flex; gap: .4rem; align-items: center; border-radius: 2rem; background: #eaf1fa; padding: .4rem .7rem; font-size: .8rem; font-weight: 700; }
       .status.offline { background: #fff3df; color: #8a5413; }
       .status.error { background: #fbeceb; color: #9a342a; }
       .notice { background: #fff9e9; border-color: #eee0b6; color: #604c1a; font-size: .88rem; line-height: 1.5; }
       .feedback { min-height: 1.3rem; font-size: .9rem; }
       .feedback.error { color: #9a342a; }
-      .feedback.success { color: #286542; }
+      .feedback.success { color: #0b428a; }
       .item { border-top: 1px solid #e6ede7; padding: .75rem 0; }
       .item:first-child { border-top: 0; }
       .item p { margin: .2rem 0; }
@@ -65,7 +75,13 @@
   <body>
     <main>
       <header>
-        <div class="brand">FERNOTECH ECO-TRACK</div>
+        <div class="brand-row">
+          <img class="brand-logo" src="/fernotech-logo.png" alt="Logo FERNOTECH" width="768" height="768" />
+          <div>
+            <div class="brand">ECO-TRACK</div>
+            <div class="muted">Traçabilité circulaire</div>
+          </div>
+        </div>
         <h1>Espace de saisie hors ligne</h1>
         <p class="muted">Préparez les listes lorsque vous êtes connecté. Les apports, tris et fabrications seront envoyés automatiquement dès que le réseau et votre session seront disponibles.</p>
         <div class="row">

@@ -233,12 +233,12 @@ export default async function SalesPage() {
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <Link
-              className="text-sm font-semibold text-[#286542] hover:underline"
+              className="text-sm font-semibold text-[#0b428a] hover:underline"
               href="/"
             >
               ← Tableau de bord
             </Link>
-            <h1 className="mt-3 text-2xl font-semibold text-[#193b29]">
+            <h1 className="mt-3 text-2xl font-semibold text-[#17212b]">
               Ventes et règlements
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-[#758178]">

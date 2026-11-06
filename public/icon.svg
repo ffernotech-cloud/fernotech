@@ -1,5 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#286542"/>
-  <path d="M139 116h234v52H196v54h154v50H196v124h-57z" fill="#fff"/>
-  <path d="M315 254h57v142h-57z" fill="#b7dfbf"/>
+  <rect width="512" height="512" rx="112" fill="#fff"/>
+  <g fill="none" stroke="#17191c" stroke-linecap="round" stroke-linejoin="round" stroke-width="16">
+    <path d="M56 133h88l70 57M456 206h-69l-37 38M58 353h91l57-54M455 377h-91l-38-37"/>
+  </g>
+  <g fill="#17191c">
+    <circle cx="56" cy="133" r="24"/><circle cx="456" cy="206" r="24"/>
+    <circle cx="58" cy="353" r="24"/><circle cx="455" cy="377" r="24"/>
+  </g>
+  <defs>
+    <clipPath id="bolt">
+      <path d="M208 52h146l-85 132h95L196 456l44-178h-92z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#bolt)" transform="rotate(35 256 256)">
+    <path fill="#063b8c" d="M-50 0h130v512H-50z"/>
+    <path fill="#ed3027" d="M80 0h130v512H80z"/>
+    <path fill="#ffb81c" d="M210 0h130v512H210z"/>
+    <path fill="#129447" d="M340 0h130v512H340z"/>
+  </g>
 </svg>

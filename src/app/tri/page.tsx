@@ -95,12 +95,12 @@ export default async function SortingPage() {
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <Link
-              className="text-sm font-semibold text-[#286542] hover:underline"
+              className="text-sm font-semibold text-[#0b428a] hover:underline"
               href="/"
             >
               ← Tableau de bord
             </Link>
-            <h1 className="mt-3 text-2xl font-semibold text-[#193b29]">
+            <h1 className="mt-3 text-2xl font-semibold text-[#17212b]">
               Tri et stock matière
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-[#758178]">
@@ -139,13 +139,13 @@ export default async function SortingPage() {
             },
           ].map((indicator) => (
             <article
-              className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm"
               key={indicator.label}
             >
               <p className="text-sm font-medium text-[#65736a]">
                 {indicator.label}
               </p>
-              <p className="mt-3 text-2xl font-semibold tracking-tight text-[#193b29]">
+              <p className="mt-3 text-2xl font-semibold tracking-tight text-[#17212b]">
                 {indicator.value}
               </p>
             </article>

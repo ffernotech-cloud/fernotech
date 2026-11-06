@@ -79,8 +79,8 @@ type CustomerReceivableRow = {
 };
 
 const fieldClass =
-  "min-h-12 w-full rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15";
-const labelClass = "mb-2 block text-sm font-semibold text-[#314a39]";
+  "min-h-12 w-full rounded-xl border border-[#dbe3ec] bg-white px-4 text-sm text-[#17212b] outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15";
+const labelClass = "mb-2 block text-sm font-semibold text-[#28384d]";
 
 const paymentMethodLabels = {
   especes: "Espèces",
@@ -108,7 +108,7 @@ function ActionFeedback({ state }: { state: SalesActionState }) {
     return (
       <p
         aria-live="polite"
-        className="mt-3 text-sm text-[#286542]"
+        className="mt-3 text-sm text-[#0b428a]"
         role="status"
       >
         {state.message}
@@ -177,7 +177,7 @@ function CustomerForm() {
       <div className="sm:col-span-2">
         <ActionFeedback state={state} />
         <button
-          className="mt-2 min-h-12 w-full rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60 sm:w-auto"
+          className="mt-2 min-h-12 w-full rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60 sm:w-auto"
           disabled={pending}
           type="submit"
         >
@@ -201,14 +201,14 @@ function SalesOrderForm({
   const [lineCount, setLineCount] = useState(1);
   if (customers.length === 0) {
     return (
-      <p className="mt-4 rounded-xl bg-[#f6f9f6] px-4 py-5 text-sm leading-6 text-[#65736a]">
+      <p className="mt-4 rounded-xl bg-[#f6f8fb] px-4 py-5 text-sm leading-6 text-[#65736a]">
         Ajoutez d’abord un client pour créer une commande.
       </p>
     );
   }
   if (products.length === 0) {
     return (
-      <p className="mt-4 rounded-xl bg-[#f6f9f6] px-4 py-5 text-sm leading-6 text-[#65736a]">
+      <p className="mt-4 rounded-xl bg-[#f6f8fb] px-4 py-5 text-sm leading-6 text-[#65736a]">
         Aucun produit actif. Demandez à un administrateur d’activer un produit
         dans le catalogue.
       </p>
@@ -250,16 +250,16 @@ function SalesOrderForm({
           type="date"
         />
       </div>
-      <div className="sm:col-span-2 rounded-2xl border border-[#d9e4da] p-4 sm:p-5">
+      <div className="sm:col-span-2 rounded-2xl border border-[#dbe3ec] p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="font-semibold text-[#193b29]">Produits commandés</h3>
+            <h3 className="font-semibold text-[#17212b]">Produits commandés</h3>
             <p className="mt-1 text-xs leading-5 text-[#758178]">
               Indiquez une quantité et un prix unitaire pour chaque produit.
             </p>
           </div>
           <button
-            className="min-h-11 rounded-xl border border-[#286542] px-4 text-sm font-semibold text-[#286542] hover:bg-[#f0f6f1]"
+            className="min-h-11 rounded-xl border border-[#0b428a] px-4 text-sm font-semibold text-[#0b428a] hover:bg-[#f0f6f1]"
             disabled={pending || lineCount >= 20}
             onClick={() => setLineCount((count) => Math.min(count + 1, 20))}
             type="button"
@@ -270,10 +270,10 @@ function SalesOrderForm({
         <div className="mt-4 grid gap-3">
           {Array.from({ length: lineCount }, (_, index) => (
             <fieldset
-              className="grid gap-3 rounded-xl bg-[#f6f9f6] p-4 sm:grid-cols-3"
+              className="grid gap-3 rounded-xl bg-[#f6f8fb] p-4 sm:grid-cols-3"
               key={index}
             >
-              <legend className="px-1 text-sm font-semibold text-[#286542]">
+              <legend className="px-1 text-sm font-semibold text-[#0b428a]">
                 Ligne {index + 1}
               </legend>
               <div>
@@ -356,7 +356,7 @@ function SalesOrderForm({
       <div className="sm:col-span-2">
         <ActionFeedback state={state} />
         <button
-          className="mt-3 min-h-12 w-full rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60 sm:w-auto"
+          className="mt-3 min-h-12 w-full rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60 sm:w-auto"
           disabled={pending}
           type="submit"
         >
@@ -385,7 +385,7 @@ function OrderStatusForm({
       <input name="orderId" type="hidden" value={order.id} />
       <input name="status" type="hidden" value={nextStatus} />
       <button
-        className="min-h-10 rounded-lg border border-[#d9e4da] bg-white px-3 py-2 text-xs font-semibold text-[#205d39] hover:bg-[#edf5ef] disabled:opacity-60"
+        className="min-h-10 rounded-lg border border-[#dbe3ec] bg-white px-3 py-2 text-xs font-semibold text-[#0b428a] hover:bg-[#eaf1fa] disabled:opacity-60"
         disabled={pending}
         type="submit"
       >
@@ -461,7 +461,7 @@ function PaymentForm({ sale, defaultDate }: { sale: SaleRow; defaultDate: string
       <div className="sm:col-span-2">
         <ActionFeedback state={state} />
         <button
-          className="mt-2 min-h-11 rounded-xl bg-[#205d39] px-4 py-2 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60"
+          className="mt-2 min-h-11 rounded-xl bg-[#0b428a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60"
           disabled={pending}
           type="submit"
         >
@@ -493,7 +493,7 @@ function OrdersList({ orders }: { orders: OrderRow[] }) {
           key={order.id}
         >
           <div>
-            <h3 className="font-semibold text-[#193b29]">{order.customerName}</h3>
+            <h3 className="font-semibold text-[#17212b]">{order.customerName}</h3>
             <p className="mt-1 text-sm text-[#65736a]">
               {displayDate(order.orderDate)} · {order.quantity} unités ·{" "}
               Total {moneyLabel(order.totalAmount)}
@@ -508,7 +508,7 @@ function OrdersList({ orders }: { orders: OrderRow[] }) {
             </ul>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-[#edf5ef] px-3 py-1 text-xs font-semibold text-[#286542]">
+            <span className="rounded-full bg-[#eaf1fa] px-3 py-1 text-xs font-semibold text-[#0b428a]">
               {labels[order.status]}
             </span>
             {order.status === "en_attente" ? (
@@ -568,7 +568,7 @@ function SalesList({
           <li className="py-5 first:pt-0 last:pb-0" key={sale.id}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-[#193b29]">
+                <h3 className="font-semibold text-[#17212b]">
                   {sale.customerName}
                 </h3>
                 <p className="mt-1 text-sm text-[#65736a]">
@@ -584,7 +584,7 @@ function SalesList({
                   ))}
                 </ul>
               </div>
-              <span className="rounded-full bg-[#edf5ef] px-3 py-1 text-xs font-semibold text-[#286542]">
+              <span className="rounded-full bg-[#eaf1fa] px-3 py-1 text-xs font-semibold text-[#0b428a]">
                 {isPaid
                   ? "Réglée"
                   : `Reste dû : ${moneyLabel(sale.outstandingAmount)}`}
@@ -648,30 +648,30 @@ export function SalesManagement({
           },
         ].map((indicator) => (
           <article
-            className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm"
             key={indicator.label}
           >
             <p className="text-sm font-medium text-[#65736a]">
               {indicator.label}
             </p>
-            <p className="mt-3 text-2xl font-semibold tracking-tight text-[#193b29]">
+            <p className="mt-3 text-2xl font-semibold tracking-tight text-[#17212b]">
               {indicator.value}
             </p>
           </article>
         ))}
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Stock disponible par produit
         </h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {finishedStock.map((product) => (
-            <li className="rounded-xl bg-[#f6f9f6] p-4" key={product.id}>
+            <li className="rounded-xl bg-[#f6f8fb] p-4" key={product.id}>
               <p className="text-sm font-medium text-[#65736a]">
                 {product.name} · {product.code}
               </p>
-              <p className="mt-2 text-xl font-semibold text-[#193b29]">
+              <p className="mt-2 text-xl font-semibold text-[#17212b]">
                 {product.quantity} {product.unitLabel}
               </p>
             </li>
@@ -679,8 +679,8 @@ export function SalesManagement({
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">Clients</h2>
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">Clients</h2>
         <p className="mt-1 text-sm text-[#758178]">
           Fiches clients et historique de leurs commandes.
         </p>
@@ -691,8 +691,8 @@ export function SalesManagement({
         ) : (
           <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {customers.map((customer) => (
-              <li className="rounded-xl bg-[#f6f9f6] p-4" key={customer.id}>
-                <p className="font-semibold text-[#193b29]">{customer.name}</p>
+              <li className="rounded-xl bg-[#f6f8fb] p-4" key={customer.id}>
+                <p className="font-semibold text-[#17212b]">{customer.name}</p>
                 {customer.phone ? (
                   <p className="mt-1 text-sm text-[#65736a]">
                     {customer.phone}
@@ -703,7 +703,7 @@ export function SalesManagement({
                     {customer.address}
                   </p>
                 ) : null}
-                <p className="mt-2 text-sm font-medium text-[#286542]">
+                <p className="mt-2 text-sm font-medium text-[#0b428a]">
                   Créance :{" "}
                   {moneyLabel(receivablesByCustomer.get(customer.id) ?? 0)}
                 </p>
@@ -711,16 +711,16 @@ export function SalesManagement({
             ))}
           </ul>
         )}
-        <details className="mt-5 rounded-xl border border-[#e3ebe4] p-4">
-          <summary className="cursor-pointer font-semibold text-[#205d39]">
+        <details className="mt-5 rounded-xl border border-[#e3e9f0] p-4">
+          <summary className="cursor-pointer font-semibold text-[#0b428a]">
             Ajouter un client
           </summary>
           <CustomerForm />
         </details>
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Nouvelle commande
         </h2>
         <SalesOrderForm
@@ -730,15 +730,15 @@ export function SalesManagement({
         />
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Commandes récentes
         </h2>
         <OrdersList orders={orders} />
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Ventes et créances
         </h2>
         <p className="mt-1 text-sm text-[#758178]">
@@ -748,8 +748,8 @@ export function SalesManagement({
         <SalesList defaultDate={defaultDate} sales={sales} />
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Historique des règlements
         </h2>
         {payments.length === 0 ? (
@@ -764,7 +764,7 @@ export function SalesManagement({
                 key={payment.id}
               >
                 <div>
-                  <p className="font-semibold text-[#193b29]">
+                  <p className="font-semibold text-[#17212b]">
                     {payment.customerName}
                   </p>
                   <p className="mt-1 text-sm text-[#65736a]">
@@ -773,7 +773,7 @@ export function SalesManagement({
                     {payment.reference ? ` · ${payment.reference}` : ""}
                   </p>
                 </div>
-                <p className="text-sm font-semibold text-[#286542]">
+                <p className="text-sm font-semibold text-[#0b428a]">
                   {moneyLabel(payment.amount)}
                 </p>
               </li>

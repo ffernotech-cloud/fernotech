@@ -54,8 +54,8 @@ type ProductionOrderRow = {
 };
 
 const fieldClass =
-  "min-h-12 w-full rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15";
-const labelClass = "mb-2 block text-sm font-semibold text-[#314a39]";
+  "min-h-12 w-full rounded-xl border border-[#dbe3ec] bg-white px-4 text-sm text-[#17212b] outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15";
+const labelClass = "mb-2 block text-sm font-semibold text-[#28384d]";
 const costFields = [
   ["materialCost", "Matière"],
   ["laborCost", "Main-d’œuvre"],
@@ -83,7 +83,7 @@ function ActionFeedback({ state }: { state: ProductionActionState }) {
     return (
       <p
         aria-live="polite"
-        className="mt-3 text-sm text-[#286542]"
+        className="mt-3 text-sm text-[#0b428a]"
         role="status"
       >
         {state.message}
@@ -108,7 +108,7 @@ function CreateProductionForm({
 
   if (availableStock.length === 0) {
     return (
-      <p className="mt-4 rounded-xl bg-[#f6f9f6] px-4 py-5 text-sm leading-6 text-[#65736a]">
+      <p className="mt-4 rounded-xl bg-[#f6f8fb] px-4 py-5 text-sm leading-6 text-[#65736a]">
         Aucun stock matière disponible. Triez puis intégrez un apport avant
         d’enregistrer une fabrication.
       </p>
@@ -218,17 +218,17 @@ function CreateProductionForm({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#d9e4da] p-4 sm:p-5">
+      <div className="rounded-2xl border border-[#dbe3ec] p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="font-semibold text-[#193b29]">Produits fabriqués</h3>
+            <h3 className="font-semibold text-[#17212b]">Produits fabriqués</h3>
             <p className="mt-1 text-xs leading-5 text-[#758178]">
               Ajoutez une ligne par produit; les coûts sont ventilés
               manuellement sur chaque ligne.
             </p>
           </div>
           <button
-            className="min-h-11 rounded-xl border border-[#286542] px-4 text-sm font-semibold text-[#286542] hover:bg-[#f0f6f1]"
+            className="min-h-11 rounded-xl border border-[#0b428a] px-4 text-sm font-semibold text-[#0b428a] hover:bg-[#f0f6f1]"
             disabled={pending || lineCount >= 20}
             onClick={() => setLineCount((count) => Math.min(count + 1, 20))}
             type="button"
@@ -240,10 +240,10 @@ function CreateProductionForm({
         <div className="mt-4 grid gap-4">
           {Array.from({ length: lineCount }, (_, index) => (
             <fieldset
-              className="grid gap-4 rounded-xl bg-[#f6f9f6] p-4 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid gap-4 rounded-xl bg-[#f6f8fb] p-4 sm:grid-cols-2 lg:grid-cols-3"
               key={index}
             >
-              <legend className="px-1 text-sm font-semibold text-[#286542]">
+              <legend className="px-1 text-sm font-semibold text-[#0b428a]">
                 Ligne {index + 1}
               </legend>
               <div className="sm:col-span-2 lg:col-span-3">
@@ -343,7 +343,7 @@ function CreateProductionForm({
       <div>
         <ActionFeedback state={state} />
         <button
-          className="mt-3 min-h-12 w-full rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60 sm:w-auto"
+          className="mt-3 min-h-12 w-full rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60 sm:w-auto"
           disabled={pending}
           type="submit"
         >
@@ -375,7 +375,7 @@ function ProductionHistory({ orders }: { orders: ProductionOrderRow[] }) {
           <li className="py-5 first:pt-0 last:pb-0" key={order.id}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-[#193b29]">
+                <h3 className="font-semibold text-[#17212b]">
                   Fabrication · {displayDate(order.productionDate)}
                 </h3>
                 <p className="mt-1 text-sm text-[#65736a]">
@@ -383,7 +383,7 @@ function ProductionHistory({ orders }: { orders: ProductionOrderRow[] }) {
                   {order.supervisorName}
                 </p>
               </div>
-              <span className="rounded-full bg-[#edf5ef] px-3 py-1 text-xs font-semibold text-[#286542]">
+              <span className="rounded-full bg-[#eaf1fa] px-3 py-1 text-xs font-semibold text-[#0b428a]">
                 {order.lines.reduce(
                   (total, line) => total + line.quantityProduced,
                   0,
@@ -391,22 +391,22 @@ function ProductionHistory({ orders }: { orders: ProductionOrderRow[] }) {
                 unités ajoutées au stock
               </span>
             </div>
-            <dl className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-[#f6f9f6] p-4 text-sm sm:grid-cols-4">
+            <dl className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-[#f6f8fb] p-4 text-sm sm:grid-cols-4">
               <div>
                 <dt className="text-xs text-[#758178]">Matière utilisée</dt>
-                <dd className="mt-1 font-semibold text-[#193b29]">
+                <dd className="mt-1 font-semibold text-[#17212b]">
                   {kilogramsLabel(Number(order.materialUsedKg))} kg
                 </dd>
               </div>
               <div>
                 <dt className="text-xs text-[#758178]">Bandes préparées</dt>
-                <dd className="mt-1 font-semibold text-[#193b29]">
+                <dd className="mt-1 font-semibold text-[#17212b]">
                   {kilogramsLabel(Number(order.bandsPreparedKg))} kg
                 </dd>
               </div>
               <div>
                 <dt className="text-xs text-[#758178]">Pertes · taux</dt>
-                <dd className="mt-1 font-semibold text-[#193b29]">
+                <dd className="mt-1 font-semibold text-[#17212b]">
                   {kilogramsLabel(Number(order.lossKg))} kg ·{" "}
                   {new Intl.NumberFormat("fr-FR", {
                     maximumFractionDigits: 2,
@@ -416,14 +416,14 @@ function ProductionHistory({ orders }: { orders: ProductionOrderRow[] }) {
               </div>
               <div>
                 <dt className="text-xs text-[#758178]">Coût total</dt>
-                <dd className="mt-1 font-semibold text-[#193b29]">
+                <dd className="mt-1 font-semibold text-[#17212b]">
                   {moneyLabel(Number(order.totalCost))}
                 </dd>
               </div>
               {order.lossReason ? (
                 <div className="col-span-2 sm:col-span-1">
                   <dt className="text-xs text-[#758178]">Motif des pertes</dt>
-                  <dd className="mt-1 font-semibold text-[#193b29]">
+                  <dd className="mt-1 font-semibold text-[#17212b]">
                     {order.lossReason}
                   </dd>
                 </div>
@@ -432,14 +432,14 @@ function ProductionHistory({ orders }: { orders: ProductionOrderRow[] }) {
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {order.lines.map((line, index) => (
                 <li
-                  className="rounded-xl border border-[#e3ebe4] p-4"
+                  className="rounded-xl border border-[#e3e9f0] p-4"
                   key={`${order.id}-${index}`}
                 >
                   <div className="flex justify-between gap-3">
-                    <h4 className="font-semibold text-[#193b29]">
+                    <h4 className="font-semibold text-[#17212b]">
                       {line.productName}
                     </h4>
-                    <span className="text-sm font-semibold text-[#286542]">
+                    <span className="text-sm font-semibold text-[#0b428a]">
                       × {line.quantityProduced}
                     </span>
                   </div>
@@ -447,7 +447,7 @@ function ProductionHistory({ orders }: { orders: ProductionOrderRow[] }) {
                     {line.productCode} · fiche v{line.specVersion} ·{" "}
                     {kilogramsLabel(Number(line.bandsPreparedKg))} kg de bandes
                   </p>
-                  <p className="mt-2 text-sm text-[#314a39]">
+                  <p className="mt-2 text-sm text-[#28384d]">
                     Coût ligne : {moneyLabel(Number(line.totalCost))} · coût
                     unitaire :{" "}
                     {moneyLabel(
@@ -500,21 +500,21 @@ export function ProductionManagement({
           },
         ].map((indicator) => (
           <article
-            className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm"
             key={indicator.label}
           >
             <p className="text-sm font-medium text-[#65736a]">
               {indicator.label}
             </p>
-            <p className="mt-3 text-2xl font-semibold tracking-tight text-[#193b29]">
+            <p className="mt-3 text-2xl font-semibold tracking-tight text-[#17212b]">
               {indicator.value}
             </p>
           </article>
         ))}
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Stock matière par type
         </h2>
         {materialStock.length === 0 ? (
@@ -524,11 +524,11 @@ export function ProductionManagement({
         ) : (
           <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {materialStock.map((row) => (
-              <li className="rounded-xl bg-[#f6f9f6] p-4" key={row.plasticType}>
+              <li className="rounded-xl bg-[#f6f8fb] p-4" key={row.plasticType}>
                 <p className="text-sm font-medium text-[#65736a]">
                   {row.plasticType}
                 </p>
-                <p className="mt-2 text-xl font-semibold text-[#193b29]">
+                <p className="mt-2 text-xl font-semibold text-[#17212b]">
                   {kilogramsLabel(row.quantityKg)} kg
                 </p>
               </li>
@@ -537,8 +537,8 @@ export function ProductionManagement({
         )}
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Stock de produits finis
         </h2>
         {finishedStock.length === 0 ? (
@@ -549,13 +549,13 @@ export function ProductionManagement({
           <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {finishedStock.map((row) => (
               <li
-                className="rounded-xl bg-[#f6f9f6] p-4"
+                className="rounded-xl bg-[#f6f8fb] p-4"
                 key={row.productId}
               >
                 <p className="text-sm font-medium text-[#65736a]">
                   {row.productName} · {row.productCode}
                 </p>
-                <p className="mt-2 text-xl font-semibold text-[#193b29]">
+                <p className="mt-2 text-xl font-semibold text-[#17212b]">
                   {row.quantity} unités
                 </p>
               </li>
@@ -564,8 +564,8 @@ export function ProductionManagement({
         )}
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Nouvel ordre de fabrication
         </h2>
         <p className="mt-1 text-sm leading-6 text-[#758178]">
@@ -580,8 +580,8 @@ export function ProductionManagement({
         />
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Historique de production
         </h2>
         <ProductionHistory orders={orders} />

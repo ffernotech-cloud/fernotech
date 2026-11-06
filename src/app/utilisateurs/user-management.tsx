@@ -28,7 +28,7 @@ function ActionFeedback({ state }: { state: UserActionState }) {
   }
   if (state.message) {
     return (
-      <p aria-live="polite" className="mt-2 text-xs text-[#286542]" role="status">
+      <p aria-live="polite" className="mt-2 text-xs text-[#0b428a]" role="status">
         {state.message}
       </p>
     );
@@ -47,7 +47,7 @@ function CreateUserForm() {
         </label>
         <input
           autoComplete="name"
-          className="min-h-12 w-full rounded-xl border border-[#d9e4da] px-4 outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+          className="min-h-12 w-full rounded-xl border border-[#dbe3ec] px-4 outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15"
           id="displayName"
           maxLength={100}
           name="displayName"
@@ -60,7 +60,7 @@ function CreateUserForm() {
         </label>
         <input
           autoComplete="off"
-          className="min-h-12 w-full rounded-xl border border-[#d9e4da] px-4 outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+          className="min-h-12 w-full rounded-xl border border-[#dbe3ec] px-4 outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15"
           id="identifier"
           maxLength={32}
           name="identifier"
@@ -74,7 +74,7 @@ function CreateUserForm() {
         </label>
         <input
           autoComplete="new-password"
-          className="min-h-12 w-full rounded-xl border border-[#d9e4da] px-4 outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+          className="min-h-12 w-full rounded-xl border border-[#dbe3ec] px-4 outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15"
           id="new-password"
           minLength={12}
           name="password"
@@ -90,7 +90,7 @@ function CreateUserForm() {
           Rôle
         </label>
         <select
-          className="min-h-12 w-full rounded-xl border border-[#d9e4da] bg-white px-4 outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+          className="min-h-12 w-full rounded-xl border border-[#dbe3ec] bg-white px-4 outline-none focus:border-[#0b428a] focus:ring-2 focus:ring-[#0b428a]/15"
           defaultValue="lecteur"
           id="role"
           name="role"
@@ -105,7 +105,7 @@ function CreateUserForm() {
       <div className="sm:col-span-2">
         <ActionFeedback state={state} />
         <button
-          className="mt-2 min-h-12 rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60"
+          className="mt-2 min-h-12 rounded-xl bg-[#0b428a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#16345d] disabled:opacity-60"
           disabled={pending}
           type="submit"
         >
@@ -132,12 +132,12 @@ function UserRow({
   return (
     <li className="grid gap-4 border-t border-[#e8eee8] py-5 lg:grid-cols-[1fr_auto_auto] lg:items-center">
       <div>
-        <p className="font-semibold text-[#193b29]">{user.displayName}</p>
+        <p className="font-semibold text-[#17212b]">{user.displayName}</p>
         <p className="mt-1 text-sm text-[#758178]">@{user.identifier}</p>
         <p
           className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
             user.isActive
-              ? "bg-[#edf5ef] text-[#286542]"
+              ? "bg-[#eaf1fa] text-[#0b428a]"
               : "bg-[#f2f2f0] text-[#70756f]"
           }`}
         >
@@ -150,7 +150,7 @@ function UserRow({
           Rôle de {user.displayName}
         </label>
         <select
-          className="min-h-11 rounded-xl border border-[#d9e4da] bg-white px-3 text-sm"
+          className="min-h-11 rounded-xl border border-[#dbe3ec] bg-white px-3 text-sm"
           defaultValue={user.role}
           id={`role-${user.id}`}
           name="role"
@@ -162,7 +162,7 @@ function UserRow({
           ))}
         </select>
         <button
-          className="min-h-11 rounded-xl border border-[#d9e4da] px-3 text-sm font-semibold text-[#205d39] hover:bg-[#edf5ef] disabled:opacity-60"
+          className="min-h-11 rounded-xl border border-[#dbe3ec] px-3 text-sm font-semibold text-[#0b428a] hover:bg-[#eaf1fa] disabled:opacity-60"
           disabled={rolePending || user.id === currentUserId}
           type="submit"
         >
@@ -178,7 +178,7 @@ function UserRow({
           value={user.isActive ? "false" : "true"}
         />
         <button
-          className="min-h-11 rounded-xl border border-[#d9e4da] px-3 text-sm font-semibold text-[#526258] hover:bg-[#f6f9f6] disabled:opacity-60"
+          className="min-h-11 rounded-xl border border-[#dbe3ec] px-3 text-sm font-semibold text-[#526173] hover:bg-[#f6f8fb] disabled:opacity-60"
           disabled={activePending || user.id === currentUserId}
           type="submit"
         >
@@ -199,8 +199,8 @@ export function UserManagement({
 }) {
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Ajouter un membre
         </h2>
         <p className="mb-5 mt-1 text-sm text-[#758178]">
@@ -209,8 +209,8 @@ export function UserManagement({
         <CreateUserForm />
       </section>
 
-      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
-        <h2 className="text-lg font-semibold text-[#193b29]">
+      <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#17212b]">
           Comptes utilisateurs
         </h2>
         {users.length === 0 ? (

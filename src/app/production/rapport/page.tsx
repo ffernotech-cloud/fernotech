@@ -90,18 +90,18 @@ export default async function ProductionReportPage() {
     <main className="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-8">
       <div className="print:hidden mb-6 flex flex-wrap items-center justify-between gap-3">
         <Link
-          className="text-sm font-semibold text-[#286542] hover:underline"
+          className="text-sm font-semibold text-[#0b428a] hover:underline"
           href="/production"
         >
           ← Retour à la production
         </Link>
         <PrintButton />
       </div>
-      <header className="mb-6 border-b border-[#d9e4da] pb-5">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#286542]">
+      <header className="mb-6 border-b border-[#dbe3ec] pb-5">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0b428a]">
           FERNOTECH ECO-TRACK
         </p>
-        <h1 className="mt-2 text-2xl font-bold text-[#193b29]">
+        <h1 className="mt-2 text-2xl font-bold text-[#17212b]">
           Rapport de production multi-produits
         </h1>
         <p className="mt-1 text-sm text-[#65736a]">
@@ -121,13 +121,13 @@ export default async function ProductionReportPage() {
           ["Pertes", `${totals.lossesKg.toLocaleString("fr-FR")} kg`],
           ["Unités fabriquées", lineTotals.quantity.toLocaleString("fr-FR")],
         ].map(([label, value]) => (
-          <div className="rounded-xl border border-[#e3ebe4] p-4" key={label}>
+          <div className="rounded-xl border border-[#e3e9f0] p-4" key={label}>
             <p className="text-xs text-[#65736a]">{label}</p>
-            <p className="mt-1 font-semibold text-[#193b29]">{value}</p>
+            <p className="mt-1 font-semibold text-[#17212b]">{value}</p>
           </div>
         ))}
       </section>
-      <p className="mb-2 text-sm font-semibold text-[#193b29]">
+      <p className="mb-2 text-sm font-semibold text-[#17212b]">
         Coût total de production : {formatCurrency(totals.cost)}
       </p>
       <p className="mb-4 text-sm text-[#65736a]">
@@ -139,7 +139,7 @@ export default async function ProductionReportPage() {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-xs sm:text-sm">
           <thead>
-            <tr className="border-y border-[#cbd9cd] bg-[#f4f7f4]">
+            <tr className="border-y border-[#cbd9cd] bg-[#f6f8fb]">
               {[
                 "Date",
                 "Ordre",
@@ -168,7 +168,7 @@ export default async function ProductionReportPage() {
             ) : (
               reportLines.map((line, index) => (
                 <tr
-                  className="border-b border-[#e3ebe4]"
+                  className="border-b border-[#e3e9f0]"
                   key={`${line.productionOrderId}-${index}`}
                 >
                   <td className="whitespace-nowrap px-2 py-3">

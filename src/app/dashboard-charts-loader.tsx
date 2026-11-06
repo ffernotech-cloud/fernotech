@@ -11,7 +11,7 @@ const DashboardCharts = dynamic(
     loading: () => (
       <section aria-labelledby="evolution-title">
         <h2
-          className="text-lg font-semibold text-[#193b29]"
+          className="text-lg font-semibold text-[#17212b]"
           id="evolution-title"
         >
           Évolution mensuelle
@@ -20,8 +20,8 @@ const DashboardCharts = dynamic(
           Chargement des graphiques…
         </p>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <div className="h-[300px] animate-pulse rounded-2xl border border-[#e3ebe4] bg-white" />
-          <div className="hidden h-[300px] animate-pulse rounded-2xl border border-[#e3ebe4] bg-white lg:block" />
+          <div className="h-[300px] animate-pulse rounded-2xl border border-[#e3e9f0] bg-white" />
+          <div className="hidden h-[300px] animate-pulse rounded-2xl border border-[#e3e9f0] bg-white lg:block" />
         </div>
       </section>
     ),
