@@ -352,8 +352,37 @@ export const salesOrders = pgTable(
       "sales_order_prices_non_negative",
       sql`${table.unitPrice} >= 0 AND ${table.totalAmount} >= 0`,
     ),
+  ],
+);
+
+export const salesOrderLines = pgTable(
+  "sales_order_lines",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    salesOrderId: uuid("sales_order_id")
+      .notNull()
+      .references(() => salesOrders.id, { onDelete: "restrict" }),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "restrict" }),
+    productCode: varchar("product_code", { length: 40 }).notNull(),
+    productName: varchar("product_name", { length: 120 }).notNull(),
+    unitLabel: varchar("unit_label", { length: 40 }).notNull(),
+    quantity: integer("quantity").notNull(),
+    unitPrice: numeric("unit_price", { precision: 14, scale: 2 }).notNull(),
+    totalAmount: numeric("total_amount", { precision: 14, scale: 2 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("sales_order_line_quantity_positive", sql`${table.quantity} > 0`),
     check(
-      "sales_order_total_matches_quantity",
+      "sales_order_line_amounts_non_negative",
+      sql`${table.unitPrice} >= 0 AND ${table.totalAmount} >= 0`,
+    ),
+    check(
+      "sales_order_line_total_matches",
       sql`${table.totalAmount} = ${table.quantity} * ${table.unitPrice}`,
     ),
   ],
@@ -390,6 +419,43 @@ export const sales = pgTable(
   ],
 );
 
+export const saleLines = pgTable(
+  "sale_lines",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    saleId: uuid("sale_id")
+      .notNull()
+      .references(() => sales.id, { onDelete: "restrict" }),
+    salesOrderLineId: uuid("sales_order_line_id")
+      .notNull()
+      .references(() => salesOrderLines.id, { onDelete: "restrict" })
+      .unique(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "restrict" }),
+    productCode: varchar("product_code", { length: 40 }).notNull(),
+    productName: varchar("product_name", { length: 120 }).notNull(),
+    unitLabel: varchar("unit_label", { length: 40 }).notNull(),
+    quantity: integer("quantity").notNull(),
+    unitPrice: numeric("unit_price", { precision: 14, scale: 2 }).notNull(),
+    totalAmount: numeric("total_amount", { precision: 14, scale: 2 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("sale_line_quantity_positive", sql`${table.quantity} > 0`),
+    check(
+      "sale_line_amounts_non_negative",
+      sql`${table.unitPrice} >= 0 AND ${table.totalAmount} >= 0`,
+    ),
+    check(
+      "sale_line_total_matches",
+      sql`${table.totalAmount} = ${table.quantity} * ${table.unitPrice}`,
+    ),
+  ],
+);
+
 export const finishedProductStockMovements = pgTable(
   "finished_product_stock_movements",
   {
@@ -406,7 +472,9 @@ export const finishedProductStockMovements = pgTable(
       .references(() => productionOrderLines.id, { onDelete: "restrict" })
       .unique(),
     saleId: uuid("sale_id")
-      .references(() => sales.id, { onDelete: "restrict" })
+      .references(() => sales.id, { onDelete: "restrict" }),
+    saleLineId: uuid("sale_line_id")
+      .references(() => saleLines.id, { onDelete: "restrict" })
       .unique(),
     reason: text("reason"),
     actorId: uuid("actor_id")
@@ -431,12 +499,20 @@ export const finishedProductStockMovements = pgTable(
       sql`${table.saleId} IS NULL OR ${table.movementType} = 'sortie'`,
     ),
     check(
+      "finished_product_sale_line_is_outbound",
+      sql`${table.saleLineId} IS NULL OR ${table.movementType} = 'sortie'`,
+    ),
+    check(
       "finished_product_movement_single_source",
       sql`${table.productionOrderId} IS NULL OR ${table.saleId} IS NULL`,
     ),
     check(
       "finished_product_line_movement_single_source",
       sql`${table.productionOrderLineId} IS NULL OR ${table.saleId} IS NULL`,
+    ),
+    check(
+      "finished_product_sale_line_movement_single_source",
+      sql`${table.saleLineId} IS NULL OR ${table.productionOrderLineId} IS NULL`,
     ),
   ],
 );

@@ -4,8 +4,9 @@ import { signOut } from "@/auth";
 import { requirePermission } from "@/lib/auth/guards";
 import { roleLabels } from "@/lib/auth/roles";
 import { DashboardChartsLoader } from "@/app/dashboard-charts-loader";
-import { getDashboardData } from "@/lib/dashboard/data";
+import { getAvailableYears, getDashboardData } from "@/lib/dashboard/data";
 import { resolveDashboardPeriod } from "@/lib/dashboard/period";
+import { kilogramsToTonnes } from "@/lib/dashboard/calculations";
 import { CURRENCY_CODE, CURRENCY_LABEL, formatCurrency } from "@/lib/currency";
 
 export const instant = false;
@@ -22,8 +23,11 @@ const kilogramFormat = new Intl.NumberFormat("fr-FR", {
 });
 const integerFormat = new Intl.NumberFormat("fr-FR");
 
-function kilogramsLabel(value: string | number): string {
-  return `${kilogramFormat.format(Number(value))} kg`;
+
+function weightLabel(value: string | number): string {
+  const kilograms = String(value);
+  const tonnes = kilogramsToTonnes(kilograms);
+  return `${kilogramFormat.format(Number(kilograms))} kg (${kilogramFormat.format(Number(tonnes))} t)`;
 }
 
 function displayDate(value: string): string {
@@ -33,50 +37,59 @@ function displayDate(value: string): string {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string | string[]; to?: string | string[] }>;
+  searchParams: Promise<{
+    from?: string | string[];
+    to?: string | string[];
+    year?: string | string[];
+  }>;
 }) {
   const user = await requirePermission("dashboard:read");
-  const period = resolveDashboardPeriod(await searchParams);
+  const [resolvedParams, availableYears] = await Promise.all([
+    searchParams,
+    getAvailableYears(),
+  ]);
+  const period = resolveDashboardPeriod(resolvedParams);
   const data = await getDashboardData(period.from, period.to);
   const totalMaterialStockKg = data.materialStock.reduce(
     (total, stock) => total + stock.quantityKg,
     0,
   );
+
   const indicators = [
     {
       label: "Plastique collecté",
-      value: kilogramsLabel(data.totals.receivedKg),
-      detail: `Accepté ${kilogramsLabel(data.totals.acceptedKg)} · Rejeté ${kilogramsLabel(data.totals.rejectedKg)}`,
+      value: weightLabel(data.totals.receivedKg),
+      detail: `Accepté ${weightLabel(data.totals.acceptedKg)} · Rejeté ${weightLabel(data.totals.rejectedKg)}`,
       icon: "↓",
     },
     {
       label: "Matière transformée",
-      value: kilogramsLabel(data.totals.materialUsedKg),
-      detail: `Pertes déclarées : ${kilogramsLabel(data.totals.lossKg)}`,
+      value: weightLabel(data.totals.materialUsedKg),
+      detail: `Pertes déclarées : ${weightLabel(data.totals.lossKg)}`,
       icon: "↻",
     },
     {
-      label: "Balais fabriqués",
-      value: integerFormat.format(data.totals.broomsProduced),
-      detail: "Ordres de fabrication de la période",
+      label: "Produits fabriqués",
+      value: integerFormat.format(data.totals.unitsProduced),
+      detail: "Ordres de fabrication de la période (tous produits)",
       icon: "⌁",
     },
     {
-      label: "Balais vendus",
-      value: integerFormat.format(data.totals.broomsSold),
-      detail: "Ventes livrées durant la période",
+      label: "Produits vendus",
+      value: integerFormat.format(data.totals.unitsSold),
+      detail: "Ventes livrées durant la période (tous produits)",
       icon: "↗",
     },
     {
       label: "Stock matière",
-      value: kilogramsLabel(totalMaterialStockKg),
+      value: weightLabel(totalMaterialStockKg),
       detail: "Solde calculé depuis tous les mouvements",
       icon: "◈",
     },
     {
-      label: "Stock de balais",
+      label: "Stock produits finis",
       value: integerFormat.format(data.finishedProductStock),
-      detail: "Solde calculé depuis tous les mouvements",
+      detail: "Total des unités disponibles en stock",
       icon: "▤",
     },
     {
@@ -84,14 +97,6 @@ export default async function Home({
       value: formatCurrency(data.totals.totalProductionCost),
       detail: "Total des fabrications de la période",
       icon: "◉",
-    },
-    {
-      label: "Coût moyen par balai",
-      value: data.totals.averageCostPerBroom
-        ? formatCurrency(data.totals.averageCostPerBroom)
-        : "—",
-      detail: "Moyenne pondérée des fabrications de la période",
-      icon: "⌖",
     },
     {
       label: "Recettes",
@@ -113,10 +118,10 @@ export default async function Home({
     },
     {
       label: "Marge estimée",
-      value: data.totals.estimatedMargin
-        ? formatCurrency(data.totals.estimatedMargin)
-        : "—",
-      detail: "Recettes moins coût moyen historique des balais vendus",
+      value: data.totals.estimatedMargin === null
+        ? "—"
+        : formatCurrency(data.totals.estimatedMargin),
+      detail: "Recettes moins coût historique estimé des unités vendues",
       icon: "≈",
     },
   ];
@@ -230,46 +235,70 @@ export default async function Home({
           aria-label="Filtrer le tableau de bord par période"
           className="rounded-2xl border border-[#e3ebe4] bg-white p-4 shadow-sm sm:p-5"
         >
-          <form
-            action="/"
-            className="flex flex-col gap-3 sm:flex-row sm:items-end"
-            method="get"
-          >
-            <label className="flex flex-1 flex-col gap-2 text-sm font-semibold text-[#314a39]">
-              Du
-              <input
-                className="min-h-12 rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
-                name="from"
-                required
-                type="date"
-                defaultValue={period.from}
-              />
-            </label>
-            <label className="flex flex-1 flex-col gap-2 text-sm font-semibold text-[#314a39]">
-              Au
-              <input
-                className="min-h-12 rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
-                name="to"
-                required
-                type="date"
-                defaultValue={period.to}
-              />
-            </label>
-            <button
-              className="min-h-12 rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e]"
-              type="submit"
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#eef3ef] pb-3">
+              <span className="text-sm font-semibold text-[#314a39]">
+                Filtrer par année :
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                {availableYears.map((yr) => (
+                  <Link
+                    key={yr}
+                    href={`/?year=${yr}`}
+                    className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition-colors ${
+                      period.mode === "year" && period.year === String(yr)
+                        ? "bg-[#205d39] text-white"
+                        : "border border-[#d9e4da] bg-white text-[#205d39] hover:bg-[#edf5ef]"
+                    }`}
+                  >
+                    Année {yr}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <form
+              action="/"
+              className="flex flex-col gap-3 sm:flex-row sm:items-end"
+              method="get"
             >
-              Appliquer la période
-            </button>
-          </form>
+              <label className="flex flex-1 flex-col gap-2 text-sm font-semibold text-[#314a39]">
+                Du
+                <input
+                  className="min-h-12 rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+                  name="from"
+                  required
+                  type="date"
+                  defaultValue={period.from}
+                />
+              </label>
+              <label className="flex flex-1 flex-col gap-2 text-sm font-semibold text-[#314a39]">
+                Au
+                <input
+                  className="min-h-12 rounded-xl border border-[#d9e4da] bg-white px-4 text-sm text-[#193b29] outline-none focus:border-[#286542] focus:ring-2 focus:ring-[#286542]/15"
+                  name="to"
+                  required
+                  type="date"
+                  defaultValue={period.to}
+                />
+              </label>
+              <button
+                className="min-h-12 rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e]"
+                type="submit"
+              >
+                Période personnalisée
+              </button>
+            </form>
+          </div>
           {period.error ? (
             <p className="mt-3 text-sm text-[#9a342a]" role="alert">
               {period.error} La période affichée a été ramenée au mois courant.
             </p>
           ) : null}
           <p className="mt-3 text-xs text-[#758178]">
-            Période affichée : du {displayDate(period.from)} au{" "}
-            {displayDate(period.to)}.
+            {period.mode === "year"
+              ? `Année affichée : ${period.year} (du 01/01/${period.year} au 31/12/${period.year}).`
+              : `Période affichée : du ${displayDate(period.from)} au ${displayDate(period.to)}.`}
           </p>
         </section>
 
@@ -297,8 +326,8 @@ export default async function Home({
               Chaque kilo collecté compte.
             </h1>
             <p className="mt-4 max-w-xl text-sm leading-6 text-[#d6e6da] sm:text-base">
-              Suivez vos collectes, votre production et vos ventes depuis un
-              seul espace.
+              Suivez vos collectes, votre production multi-produits et vos
+              ventes depuis un seul espace.
             </p>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-medium text-[#e5f1e8]">
               <span
@@ -320,7 +349,8 @@ export default async function Home({
                 Vue d’ensemble
               </h2>
               <p className="mt-1 text-sm text-[#758178]">
-                Collectes, production, ventes et règlements de la période.
+                Collectes, production globale, ventes et règlements de la
+                période. Poids présentés en kg et tonnes équivalentes (1 000 kg = 1 t).
               </p>
             </div>
             <span className="hidden text-xs font-medium text-[#758178] sm:inline">
@@ -344,12 +374,92 @@ export default async function Home({
                     {indicator.icon}
                   </span>
                 </div>
-                <p className="mt-5 text-3xl font-semibold tracking-tight text-[#193b29]">
+                <p className="mt-5 text-2xl font-semibold tracking-tight text-[#193b29]">
                   {indicator.value}
                 </p>
                 <p className="mt-1 text-xs text-[#819087]">{indicator.detail}</p>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section aria-labelledby="products-summary-title">
+          <div className="mb-3 flex items-end justify-between gap-4">
+            <div>
+              <h2
+                className="text-lg font-semibold text-[#193b29]"
+                id="products-summary-title"
+              >
+                Indicateurs par produit du catalogue
+              </h2>
+              <p className="mt-1 text-sm text-[#758178]">
+                Quantités fabriquées et vendues, coûts, recettes de la période et stocks courants.
+              </p>
+            </div>
+            <Link
+              className="text-xs font-semibold text-[#286542] hover:underline"
+              href="/produits"
+            >
+              Gérer le catalogue →
+            </Link>
+          </div>
+          <div className="overflow-x-auto rounded-2xl border border-[#e3ebe4] bg-white shadow-sm">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-[#e3ebe4] bg-[#f7faf8] text-xs font-semibold text-[#65736a]">
+                <tr>
+                  <th className="px-4 py-3 sm:px-6">Produit</th>
+                  <th className="px-4 py-3 text-right">Fabriqués</th>
+                  <th className="px-4 py-3 text-right">Coût total</th>
+                  <th className="px-4 py-3 text-right">Coût unitaire</th>
+                  <th className="px-4 py-3 text-right">Vendus</th>
+                  <th className="px-4 py-3 text-right">Recettes</th>
+                  <th className="px-4 py-3 text-right">Marge estimée</th>
+                  <th className="px-4 py-3 text-right sm:px-6">Stock actuel</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#edf1ed] text-[#193b29]">
+                {data.productsSummary.map((p) => (
+                  <tr className="hover:bg-[#fbfdfb]" key={p.productId}>
+                    <td className="px-4 py-3.5 sm:px-6">
+                      <div className="font-semibold text-[#193b29]">
+                        {p.productName}
+                      </div>
+                      <div className="text-xs text-[#758178]">
+                        {p.productCode} · {p.unitLabel}{" "}
+                        {!p.isActive ? "(inactif)" : ""}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 text-right font-medium">
+                      {integerFormat.format(p.quantityProduced)}
+                    </td>
+                    <td className="px-4 py-3.5 text-right text-[#526258]">
+                      {p.quantityProduced > 0
+                        ? formatCurrency(p.productionCost)
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3.5 text-right text-[#526258]">
+                      {p.averageProductionCost
+                        ? formatCurrency(p.averageProductionCost)
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3.5 text-right font-medium">
+                      {integerFormat.format(p.quantitySold)}
+                    </td>
+                    <td className="px-4 py-3.5 text-right text-[#526258]">
+                      {p.quantitySold > 0 ? formatCurrency(p.revenue) : "—"}
+                    </td>
+                    <td className="px-4 py-3.5 text-right text-[#526258]">
+                      {p.estimatedMargin === null
+                        ? "—"
+                        : formatCurrency(p.estimatedMargin)}
+                    </td>
+                    <td className="px-4 py-3.5 text-right font-semibold text-[#205d39] sm:px-6">
+                      {integerFormat.format(p.currentStock)} {p.unitLabel}(s)
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -366,11 +476,11 @@ export default async function Home({
             </h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-[#52685a]">
               Indicateur calculé uniquement à partir du poids accepté au tri,
-              pour la période sélectionnée.
+              pour la période sélectionnée (1 000 kg = 1 t).
             </p>
           </div>
           <p className="mt-3 whitespace-nowrap text-3xl font-semibold text-[#205d39] sm:mt-0">
-            {kilogramsLabel(data.totals.acceptedKg)}
+            {weightLabel(data.totals.acceptedKg)}
           </p>
         </section>
 
@@ -403,7 +513,7 @@ export default async function Home({
                       </span>
                     </span>
                     <span className="shrink-0 text-sm font-semibold text-[#205d39]">
-                      {kilogramsLabel(collector.acceptedKg)}
+                      {weightLabel(collector.acceptedKg)}
                     </span>
                   </li>
                 ))}
@@ -432,7 +542,7 @@ export default async function Home({
                       {stock.plasticType}
                     </span>
                     <span className="text-sm font-semibold text-[#205d39]">
-                      {kilogramsLabel(stock.quantityKg)}
+                      {weightLabel(stock.quantityKg)}
                     </span>
                   </li>
                 ))}

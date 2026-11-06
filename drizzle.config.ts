@@ -1,5 +1,9 @@
+import { neonConfig } from "@neondatabase/serverless";
 import { config as loadEnv } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+import ws from "ws";
+
+neonConfig.webSocketConstructor = ws;
 
 loadEnv({ path: [".env.local", ".env"] });
 

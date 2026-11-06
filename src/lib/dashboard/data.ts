@@ -9,24 +9,26 @@ import {
   productionOrderLines,
   productionOrders,
   products,
+  saleLines,
   sales,
 } from "@/db/schema";
-import { availableFinishedProductStock } from "@/lib/sales/calculations";
 import { availableMaterialKg } from "@/lib/sorting/calculations";
 import {
   calculateAverageProductionCostPerBroom,
-  calculateEstimatedSalesMargin,
   calculateOutstandingReceivables,
+  calculateProductSummaries,
   sumAmounts,
   sumKilograms,
+  type ProductDashboardSummary,
 } from "./calculations";
+import { currentDoualaYear } from "./period";
 
 export type MonthlyDashboardPoint = {
   month: string;
   acceptedKg: number;
   transformedKg: number;
-  producedBrooms: number;
-  soldBrooms: number;
+  producedUnits: number;
+  soldUnits: number;
 };
 
 type CollectorTotals = {
@@ -43,17 +45,6 @@ function safeCount(value: string, label: string): number {
     throw new Error(`${label} contient une quantité invalide.`);
   }
   return count;
-}
-
-function sumCounts(values: ReadonlyArray<string>, label: string): number {
-  const total = values.reduce(
-    (sum, value) => sum + safeCount(value, label),
-    0,
-  );
-  if (!Number.isSafeInteger(total)) {
-    throw new Error(`${label} dépasse la quantité maximale autorisée.`);
-  }
-  return total;
 }
 
 function kilogramsAsNumber(value: string): number {
@@ -90,6 +81,46 @@ function monthKeys(from: string, to: string): string[] {
   return months;
 }
 
+export async function getAvailableYears(): Promise<number[]> {
+  const database = getDatabase();
+  const [deliveryYears, productionYears, salesYears, paymentYears] =
+    await Promise.all([
+    database
+      .select({
+        year: sql<number>`distinct extract(year from ${deliveries.deliveryDate})::int`,
+      })
+      .from(deliveries),
+    database
+      .select({
+        year: sql<number>`distinct extract(year from ${productionOrders.productionDate})::int`,
+      })
+      .from(productionOrders),
+    database
+      .select({
+        year: sql<number>`distinct extract(year from ${sales.saleDate})::int`,
+      })
+      .from(sales),
+    database
+      .select({
+        year: sql<number>`distinct extract(year from ${payments.paidAt})::int`,
+      })
+      .from(payments),
+  ]);
+
+  const yearSet = new Set<number>([Number(currentDoualaYear())]);
+  for (const row of [
+    ...deliveryYears,
+    ...productionYears,
+    ...salesYears,
+    ...paymentYears,
+  ]) {
+    if (row.year && row.year >= 2000 && row.year <= 2100) {
+      yearSet.add(row.year);
+    }
+  }
+  return [...yearSet].sort((a, b) => b - a);
+}
+
 export async function getDashboardData(from: string, to: string) {
   const database = getDatabase();
   const deliveryFilter = and(
@@ -110,16 +141,30 @@ export async function getDashboardData(from: string, to: string) {
   const salesMonth = sql<string>`to_char(date_trunc('month', ${sales.saleDate}::date), 'YYYY-MM')`;
 
   const [
+    productRows,
     deliveryRows,
     productionRows,
-    balaiProductionRows,
+    productProductionRows,
     salesRows,
+    productSalesRows,
+    monthlyProductionUnitsRows,
+    monthlySalesUnitsRows,
     paymentRows,
     receivableRows,
-    lifetimeProductionRows,
+    lifetimeProductProductionRows,
     materialRows,
-    finishedRows,
+    productStockRows,
   ] = await Promise.all([
+    database
+      .select({
+        id: products.id,
+        code: products.code,
+        name: products.name,
+        unitLabel: products.unitLabel,
+        isActive: products.isActive,
+      })
+      .from(products)
+      .orderBy(asc(products.name)),
     database
       .select({
         month: deliveryMonth,
@@ -147,8 +192,9 @@ export async function getDashboardData(from: string, to: string) {
       .orderBy(asc(productionMonth)),
     database
       .select({
-        month: productionMonth,
+        productId: productionOrderLines.productId,
         quantityProduced: sql<string>`coalesce(sum(${productionOrderLines.quantityProduced}), 0)::text`,
+        bandsPreparedKg: sql<string>`coalesce(sum(${productionOrderLines.bandsPreparedKg}::numeric), 0)::text`,
         totalCost: sql<string>`coalesce(sum(${productionOrderLines.totalCost}::numeric), 0)::text`,
       })
       .from(productionOrderLines)
@@ -156,17 +202,47 @@ export async function getDashboardData(from: string, to: string) {
         productionOrders,
         eq(productionOrderLines.productionOrderId, productionOrders.id),
       )
-      .innerJoin(products, eq(productionOrderLines.productId, products.id))
-      .where(and(productionFilter, eq(products.code, "BALAI")))
+      .where(productionFilter)
+      .groupBy(productionOrderLines.productId),
+    database
+      .select({
+        month: salesMonth,
+        revenue: sql<string>`coalesce(sum(${sales.totalAmount}::numeric), 0)::text`,
+      })
+      .from(sales)
+      .where(salesFilter)
+      .groupBy(salesMonth)
+      .orderBy(asc(salesMonth)),
+    database
+      .select({
+        productId: saleLines.productId,
+        quantitySold: sql<string>`coalesce(sum(${saleLines.quantity}), 0)::text`,
+        revenue: sql<string>`coalesce(sum(${saleLines.totalAmount}::numeric), 0)::text`,
+      })
+      .from(saleLines)
+      .innerJoin(sales, eq(saleLines.saleId, sales.id))
+      .where(salesFilter)
+      .groupBy(saleLines.productId),
+    database
+      .select({
+        month: productionMonth,
+        quantityProduced: sql<string>`coalesce(sum(${productionOrderLines.quantityProduced}), 0)::text`,
+      })
+      .from(productionOrderLines)
+      .innerJoin(
+        productionOrders,
+        eq(productionOrderLines.productionOrderId, productionOrders.id),
+      )
+      .where(productionFilter)
       .groupBy(productionMonth)
       .orderBy(asc(productionMonth)),
     database
       .select({
         month: salesMonth,
-        revenue: sql<string>`coalesce(sum(${sales.totalAmount}::numeric), 0)::text`,
-        broomsSold: sql<string>`coalesce(sum(${sales.quantity}), 0)::text`,
+        quantitySold: sql<string>`coalesce(sum(${saleLines.quantity}), 0)::text`,
       })
-      .from(sales)
+      .from(saleLines)
+      .innerJoin(sales, eq(saleLines.saleId, sales.id))
       .where(salesFilter)
       .groupBy(salesMonth)
       .orderBy(asc(salesMonth)),
@@ -186,12 +262,12 @@ export async function getDashboardData(from: string, to: string) {
       .groupBy(sales.id, sales.totalAmount),
     database
       .select({
+        productId: productionOrderLines.productId,
         totalCost: sql<string>`coalesce(sum(${productionOrderLines.totalCost}::numeric), 0)::text`,
-        broomsProduced: sql<string>`coalesce(sum(${productionOrderLines.quantityProduced}), 0)::text`,
+        quantityProduced: sql<string>`coalesce(sum(${productionOrderLines.quantityProduced}), 0)::text`,
       })
       .from(productionOrderLines)
-      .innerJoin(products, eq(productionOrderLines.productId, products.id))
-      .where(eq(products.code, "BALAI")),
+      .groupBy(productionOrderLines.productId),
     database
       .select({
         plasticType: materialStockMovements.plasticType,
@@ -205,16 +281,15 @@ export async function getDashboardData(from: string, to: string) {
       ),
     database
       .select({
+        productId: finishedProductStockMovements.productId,
         movementType: finishedProductStockMovements.movementType,
         quantity: sql<string>`sum(${finishedProductStockMovements.quantity})::text`,
       })
       .from(finishedProductStockMovements)
-      .innerJoin(
-        products,
-        eq(finishedProductStockMovements.productId, products.id),
-      )
-      .where(eq(products.code, "BALAI"))
-      .groupBy(finishedProductStockMovements.movementType),
+      .groupBy(
+        finishedProductStockMovements.productId,
+        finishedProductStockMovements.movementType,
+      ),
   ]);
 
   const deliveriesReceivedKg = sumKilograms(
@@ -226,9 +301,6 @@ export async function getDashboardData(from: string, to: string) {
   const deliveriesRejectedKg = sumKilograms(
     deliveryRows.map((row) => row.rejectedKg),
   );
-  const balaiProductionCost = sumAmounts(
-    balaiProductionRows.map((row) => row.totalCost),
-  );
   const productionTotalCost = sumAmounts(
     productionRows.map((row) => row.totalCost),
   );
@@ -238,19 +310,18 @@ export async function getDashboardData(from: string, to: string) {
   const productionLossKg = sumKilograms(
     productionRows.map((row) => row.lossKg),
   );
-  const productionBrooms = sumCounts(
-    balaiProductionRows.map((row) => row.quantityProduced),
-    "La production",
-  );
   const salesRevenue = sumAmounts(salesRows.map((row) => row.revenue));
-  const broomsSold = sumCounts(
-    salesRows.map((row) => row.broomsSold),
-    "Les ventes",
-  );
-  const lifetimeProductionCost = lifetimeProductionRows[0]?.totalCost ?? "0.00";
-  const lifetimeBroomsProduced = safeCount(
-    lifetimeProductionRows[0]?.broomsProduced ?? "0",
-    "La production historique",
+  const lifetimeProductionByProduct = new Map(
+    lifetimeProductProductionRows.map((row) => [
+      row.productId,
+      {
+        totalCost: row.totalCost,
+        quantityProduced: safeCount(
+          row.quantityProduced,
+          "La production historique",
+        ),
+      },
+    ]),
   );
 
   const materialByType = new Map<
@@ -273,12 +344,75 @@ export async function getDashboardData(from: string, to: string) {
     }))
     .filter((row) => row.quantityKg > 0)
     .sort((left, right) => left.plasticType.localeCompare(right.plasticType));
-  const finishedProductStock = availableFinishedProductStock(
-    finishedRows.map((row) => ({
-      movementType: row.movementType,
-      quantity: safeCount(row.quantity, "Le stock de produits finis"),
-    })),
+
+  const stockByProductMap = new Map<string, number>();
+  for (const row of productStockRows) {
+    const qty = safeCount(row.quantity, "Le stock produit");
+    const delta = row.movementType === "entree" ? qty : -qty;
+    stockByProductMap.set(
+      row.productId,
+      (stockByProductMap.get(row.productId) ?? 0) + delta,
+    );
+  }
+
+  const productionByProduct = new Map(
+    productProductionRows.map((row) => [row.productId, row]),
   );
+  const salesByProduct = new Map(
+    productSalesRows.map((row) => [row.productId, row]),
+  );
+
+  const productsSummary: ProductDashboardSummary[] = calculateProductSummaries(
+    productRows.map((product) => {
+      const production = productionByProduct.get(product.id);
+      const sale = salesByProduct.get(product.id);
+      const lifetimeProduction = lifetimeProductionByProduct.get(product.id);
+      return {
+        product,
+        producedQuantity: production
+          ? safeCount(production.quantityProduced, "La production")
+          : 0,
+        producedCost: production?.totalCost ?? "0.00",
+        soldQuantity: sale
+          ? safeCount(sale.quantitySold, "La vente")
+          : 0,
+        revenue: sale?.revenue ?? "0.00",
+        currentStock: stockByProductMap.get(product.id) ?? 0,
+        historicalProductionCost: lifetimeProduction?.totalCost ?? "0.00",
+        historicalProducedQuantity: lifetimeProduction?.quantityProduced ?? 0,
+      };
+    }),
+  );
+
+  const totalUnitsProduced = productsSummary.reduce(
+    (sum, p) => sum + p.quantityProduced,
+    0,
+  );
+  const totalUnitsSold = productsSummary.reduce(
+    (sum, p) => sum + p.quantitySold,
+    0,
+  );
+  const totalFinishedStock = productsSummary.reduce(
+    (sum, p) => sum + p.currentStock,
+    0,
+  );
+
+  const balaiSummary = productsSummary.find((p) => p.productCode === "BALAI");
+  const broomsProduced = balaiSummary?.quantityProduced ?? 0;
+  const broomsSold = balaiSummary?.quantitySold ?? 0;
+  const estimatedMargin =
+    productsSummary.some(
+      (product) =>
+        product.quantitySold > 0 && product.estimatedMargin === null,
+    )
+      ? null
+      : sumAmounts(
+          productsSummary.flatMap((product) =>
+            product.estimatedMargin === null
+              ? []
+              : [product.estimatedMargin],
+          ),
+        );
 
   const monthly = new Map(
     monthKeys(from, to).map((month) => [
@@ -287,8 +421,8 @@ export async function getDashboardData(from: string, to: string) {
         month,
         acceptedKg: 0,
         transformedKg: 0,
-        producedBrooms: 0,
-        soldBrooms: 0,
+        producedUnits: 0,
+        soldUnits: 0,
       },
     ]),
   );
@@ -321,22 +455,18 @@ export async function getDashboardData(from: string, to: string) {
       );
     }
   }
-  for (const row of balaiProductionRows) {
+  for (const row of monthlyProductionUnitsRows) {
     const point = monthly.get(row.month);
     if (point) {
-      point.producedBrooms = sumCounts(
-        [String(point.producedBrooms), row.quantityProduced],
-        "Les balais fabriqués",
-      );
+      const qty = safeCount(row.quantityProduced, "Les unités fabriquées");
+      point.producedUnits = point.producedUnits + qty;
     }
   }
-  for (const row of salesRows) {
+  for (const row of monthlySalesUnitsRows) {
     const point = monthly.get(row.month);
     if (point) {
-      point.soldBrooms = sumCounts(
-        [String(point.soldBrooms), row.broomsSold],
-        "Les balais vendus",
-      );
+      const qty = safeCount(row.quantitySold, "Les unités vendues");
+      point.soldUnits = point.soldUnits + qty;
     }
   }
 
@@ -347,27 +477,25 @@ export async function getDashboardData(from: string, to: string) {
       rejectedKg: deliveriesRejectedKg,
       materialUsedKg: productionMaterialUsedKg,
       lossKg: productionLossKg,
-      broomsProduced: productionBrooms,
+      unitsProduced: totalUnitsProduced,
+      unitsSold: totalUnitsSold,
+      broomsProduced,
       broomsSold,
       totalProductionCost: productionTotalCost,
       averageCostPerBroom: calculateAverageProductionCostPerBroom(
-        balaiProductionCost,
-        productionBrooms,
+        balaiSummary?.productionCost ?? "0.00",
+        broomsProduced,
       ),
       revenue: salesRevenue,
       paymentsCollected: paymentRows[0]?.amount ?? "0.00",
       outstandingReceivables: calculateOutstandingReceivables(
         receivableRows,
       ),
-      estimatedMargin: calculateEstimatedSalesMargin(
-        salesRevenue,
-        broomsSold,
-        lifetimeProductionCost,
-        lifetimeBroomsProduced,
-      ),
+      estimatedMargin,
     },
     materialStock,
-    finishedProductStock,
+    finishedProductStock: totalFinishedStock,
+    productsSummary,
     topCollectors: [...collectorsById.values()]
       .map((collector) => ({
         ...collector,

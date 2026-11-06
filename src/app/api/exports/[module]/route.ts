@@ -12,6 +12,7 @@ import {
   productionOrders,
   products,
   sales,
+  salesOrderLines,
   salesOrders,
   users,
 } from "@/db/schema";
@@ -164,7 +165,7 @@ export async function GET(
         "Poids reçu (kg)",
         "Poids accepté (kg)",
         "Poids rejeté (kg)",
-        "Motif du rejet",
+        "Motif de rejet",
         "Statut",
       ],
       rows.map((row) => [
@@ -184,8 +185,8 @@ export async function GET(
   if (module === "production") {
     const rows = await database
       .select({
-        productionOrderId: productionOrderLines.productionOrderId,
         productionDate: productionOrders.productionDate,
+        productionOrderId: productionOrders.id,
         supervisorName: users.displayName,
         plasticType: productionOrders.plasticType,
         materialUsedKg: productionOrders.materialUsedKg,
@@ -289,19 +290,29 @@ export async function GET(
   }
 
   if (module === "ventes") {
-    const [orders, paymentTotals] = await Promise.all([
+    const [lines, paymentTotals] = await Promise.all([
       database
         .select({
+          orderId: salesOrders.id,
           orderDate: salesOrders.orderDate,
           customerName: customers.name,
           status: salesOrders.status,
-          quantity: salesOrders.quantity,
-          unitPrice: salesOrders.unitPrice,
-          totalAmount: salesOrders.totalAmount,
+          orderQuantity: salesOrders.quantity,
+          orderTotalAmount: salesOrders.totalAmount,
+          productName: salesOrderLines.productName,
+          productCode: salesOrderLines.productCode,
+          unitLabel: salesOrderLines.unitLabel,
+          lineQuantity: salesOrderLines.quantity,
+          lineUnitPrice: salesOrderLines.unitPrice,
+          lineTotalAmount: salesOrderLines.totalAmount,
           saleId: sales.id,
         })
         .from(salesOrders)
         .innerJoin(customers, eq(salesOrders.customerId, customers.id))
+        .leftJoin(
+          salesOrderLines,
+          eq(salesOrderLines.salesOrderId, salesOrders.id),
+        )
         .leftJoin(sales, eq(sales.orderId, salesOrders.id))
         .orderBy(desc(salesOrders.orderDate), desc(salesOrders.createdAt)),
       database
@@ -324,30 +335,44 @@ export async function GET(
       livree: "Livrée",
       annulee: "Annulée",
     } as const;
+    const exportedOrderTotals = new Set<string>();
+
     return csvResponse(
       module,
       [
         "Date commande",
         "Client",
         "Statut",
-        "Quantité (balais)",
+        "Produit",
+        "Code produit",
+        "Quantité",
+        "Unité",
         "Prix unitaire",
-        "Montant total",
+        "Total ligne",
+        "Total commande",
         "Montant encaissé",
         "Reste dû",
       ],
-      orders.map((row) => {
-        const total = Number(row.totalAmount);
+      lines.map((row) => {
+        const orderTotal = Number(row.orderTotalAmount);
         const paid = row.saleId ? (paidBySale.get(row.saleId) ?? 0) : null;
+        const firstOrderLine = !exportedOrderTotals.has(row.orderId);
+        exportedOrderTotals.add(row.orderId);
         return [
           formatDate(row.orderDate),
           row.customerName,
           statusLabels[row.status],
-          row.quantity,
-          row.unitPrice,
-          row.totalAmount,
-          paid,
-          paid === null ? null : Math.max(0, total - paid).toFixed(2),
+          row.productName ?? "Balai",
+          row.productCode ?? "BALAI",
+          row.lineQuantity ?? row.orderQuantity,
+          row.unitLabel ?? "balai",
+          row.lineUnitPrice ?? "—",
+          row.lineTotalAmount ?? row.orderTotalAmount,
+          firstOrderLine ? row.orderTotalAmount : null,
+          firstOrderLine ? paid : null,
+          firstOrderLine && paid !== null
+            ? Math.max(0, orderTotal - paid).toFixed(2)
+            : null,
         ];
       }),
     );
@@ -426,6 +451,7 @@ export async function GET(
       createdAt: finishedProductStockMovements.createdAt,
       productName: products.name,
       productCode: products.code,
+      unitLabel: products.unitLabel,
       movementType: finishedProductStockMovements.movementType,
       quantity: finishedProductStockMovements.quantity,
       reason: finishedProductStockMovements.reason,
@@ -447,8 +473,9 @@ export async function GET(
       "Date du mouvement",
       "Produit",
       "Code produit",
+      "Unité",
       "Mouvement",
-      "Quantité (unités)",
+      "Quantité",
       "Client",
       "Motif",
     ],
@@ -456,6 +483,7 @@ export async function GET(
       formatDate(row.createdAt),
       row.productName,
       row.productCode,
+      row.unitLabel,
       row.movementType === "entree" ? "Entrée" : "Sortie",
       row.quantity,
       row.customerName,

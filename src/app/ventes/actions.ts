@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDatabase } from "@/db";
 import {
@@ -8,15 +8,19 @@ import {
   customers,
   finishedProductStockMovements,
   payments,
+  saleLines,
   products,
   sales,
   salesOrders,
+  salesOrderLines,
 } from "@/db/schema";
 import { requirePermission } from "@/lib/auth/guards";
 import { formatCurrency } from "@/lib/currency";
 import {
   calculateSalesTotal,
-  finishedStockIsSufficient,
+  calculateSalesOrderTotals,
+  finishedProductStockById,
+  finishedProductsAreSufficient,
   outstandingReceivable,
   paymentFitsReceivable,
 } from "@/lib/sales/calculations";
@@ -82,11 +86,24 @@ export async function createSalesOrder(
   formData: FormData,
 ): Promise<SalesActionState> {
   const actor = await requirePermission("sales:manage");
+  const productIds = formData.getAll("productId");
+  const quantities = formData.getAll("quantity");
+  const unitPrices = formData.getAll("unitPrice");
+  if (
+    productIds.length === 0 ||
+    productIds.length !== quantities.length ||
+    productIds.length !== unitPrices.length
+  ) {
+    return { error: "Vérifiez les lignes de produits de la commande." };
+  }
   const parsed = createSalesOrderSchema.safeParse({
     customerId: formData.get("customerId"),
     orderDate: formData.get("orderDate"),
-    quantity: formData.get("quantity"),
-    unitPrice: formData.get("unitPrice"),
+    lines: productIds.map((productId, index) => ({
+      productId,
+      quantity: quantities[index],
+      unitPrice: unitPrices[index],
+    })),
   });
   if (!parsed.success) {
     return {
@@ -94,10 +111,10 @@ export async function createSalesOrder(
     };
   }
 
-  const totalAmount = calculateSalesTotal(
-    parsed.data.quantity,
-    parsed.data.unitPrice,
-  );
+  const totals = calculateSalesOrderTotals(parsed.data.lines);
+  const requestedProductIds = [
+    ...new Set(parsed.data.lines.map((line) => line.productId)),
+  ];
   const database = getDatabase();
   const result = await database.transaction(
     async (transaction): Promise<SalesActionState> => {
@@ -111,17 +128,59 @@ export async function createSalesOrder(
         return { error: "Ce client n’existe plus." };
       }
 
+      const productRows = await transaction
+        .select({
+          id: products.id,
+          code: products.code,
+          name: products.name,
+          unitLabel: products.unitLabel,
+          isActive: products.isActive,
+        })
+        .from(products)
+        .where(inArray(products.id, requestedProductIds))
+        .orderBy(asc(products.id))
+        .for("update");
+      if (productRows.length !== requestedProductIds.length) {
+        return { error: "Un produit de cette commande n’existe plus." };
+      }
+      const inactiveProduct = productRows.find((product) => !product.isActive);
+      if (inactiveProduct) {
+        return {
+          error: `Le produit « ${inactiveProduct.name} » est inactif.`,
+        };
+      }
+      const productById = new Map(
+        productRows.map((product) => [product.id, product]),
+      );
+
       const [order] = await transaction
         .insert(salesOrders)
         .values({
           customerId: customer.id,
           orderDate: parsed.data.orderDate,
-          quantity: parsed.data.quantity,
-          unitPrice: parsed.data.unitPrice,
-          totalAmount,
+          quantity: totals.quantity,
+          unitPrice: totals.averageUnitPrice,
+          totalAmount: totals.totalAmount,
           createdBy: actor.id,
         })
         .returning({ id: salesOrders.id });
+      const lineRows = parsed.data.lines.map((line) => {
+        const product = productById.get(line.productId);
+        if (!product) {
+          throw new Error("Un produit sélectionné a disparu.");
+        }
+        return {
+          salesOrderId: order.id,
+          productId: product.id,
+          productCode: product.code,
+          productName: product.name,
+          unitLabel: product.unitLabel,
+          quantity: line.quantity,
+          unitPrice: line.unitPrice,
+          totalAmount: calculateSalesTotal(line.quantity, line.unitPrice),
+        };
+      });
+      await transaction.insert(salesOrderLines).values(lineRows);
       await transaction.insert(auditLogs).values({
         actorId: actor.id,
         action: "sales_order.created",
@@ -129,9 +188,16 @@ export async function createSalesOrder(
         entityId: order.id,
         details: {
           customerId: customer.id,
-          quantity: parsed.data.quantity,
-          unitPrice: parsed.data.unitPrice,
-          totalAmount,
+          quantity: totals.quantity,
+          totalAmount: totals.totalAmount,
+          lines: lineRows.map((line) => ({
+            productId: line.productId,
+            productCode: line.productCode,
+            productName: line.productName,
+            quantity: line.quantity,
+            unitPrice: line.unitPrice,
+            totalAmount: line.totalAmount,
+          })),
           status: "en_attente",
         },
       });
@@ -203,34 +269,63 @@ export async function updateSalesOrderStatus(
 
       if (parsed.data.status === "livree") {
         await transaction.execute(
-          sql`select pg_advisory_xact_lock(hashtext('finished-product-stock-balai'))`,
+          sql`select pg_advisory_xact_lock(hashtext('finished-product-stock'))`,
         );
-        const [balai] = await transaction
-          .select({ id: products.id })
-          .from(products)
-          .where(eq(products.code, "BALAI"))
-          .limit(1);
-        if (!balai) {
+        const orderLineRows = await transaction
+          .select({
+            id: salesOrderLines.id,
+            productId: salesOrderLines.productId,
+            productCode: salesOrderLines.productCode,
+            productName: salesOrderLines.productName,
+            unitLabel: salesOrderLines.unitLabel,
+            quantity: salesOrderLines.quantity,
+            unitPrice: salesOrderLines.unitPrice,
+            totalAmount: salesOrderLines.totalAmount,
+          })
+          .from(salesOrderLines)
+          .where(eq(salesOrderLines.salesOrderId, order.id))
+          .for("update");
+        if (orderLineRows.length === 0) {
           return {
             error:
-              "Le produit Balai est introuvable dans le catalogue. Contactez l’administrateur.",
+              "Cette commande ne contient aucune ligne de produit; elle ne peut pas être livrée.",
           };
         }
+        const quantitiesByProduct = new Map<string, number>();
+        for (const line of orderLineRows) {
+          quantitiesByProduct.set(
+            line.productId,
+            (quantitiesByProduct.get(line.productId) ?? 0) + line.quantity,
+          );
+        }
+        const productIds = [...quantitiesByProduct.keys()].sort();
         const movements = await transaction
           .select({
+            productId: finishedProductStockMovements.productId,
             movementType: finishedProductStockMovements.movementType,
             quantity: finishedProductStockMovements.quantity,
           })
           .from(finishedProductStockMovements)
-          .where(eq(finishedProductStockMovements.productId, balai.id));
-        if (
-          !finishedStockIsSufficient(
-            movements,
-            order.quantity,
-          )
-        ) {
+          .where(inArray(finishedProductStockMovements.productId, productIds));
+        const requiredProducts = productIds.map((productId) => ({
+          productId,
+          quantity: quantitiesByProduct.get(productId) ?? 0,
+        }));
+        if (!finishedProductsAreSufficient(movements, requiredProducts)) {
+          const balances = finishedProductStockById(movements);
+          const insufficientLine = orderLineRows.find(
+            (line) =>
+              (balances.get(line.productId) ?? 0) <
+              (quantitiesByProduct.get(line.productId) ?? 0),
+          );
+          if (!insufficientLine) {
+            return {
+              error:
+                "Les stocks produits ne peuvent pas être vérifiés. Actualisez la page puis réessayez.",
+            };
+          }
           return {
-            error: `Stock insuffisant : ${order.quantity} balais demandés. La commande reste préparée.`,
+            error: `Stock insuffisant : ${insufficientLine.productName}, ${quantitiesByProduct.get(insufficientLine.productId)} ${insufficientLine.unitLabel}(s) demandée(s), ${balances.get(insufficientLine.productId) ?? 0} disponible(s). La commande reste préparée.`,
           };
         }
 
@@ -246,14 +341,38 @@ export async function updateSalesOrderStatus(
             actorId: actor.id,
           })
           .returning({ id: sales.id });
-        await transaction.insert(finishedProductStockMovements).values({
-          movementType: "sortie",
-          productId: balai.id,
-          quantity: order.quantity,
-          saleId: sale.id,
-          actorId: actor.id,
-          reason: "Livraison de commande client",
-        });
+        const createdSaleLines = await transaction
+          .insert(saleLines)
+          .values(
+            orderLineRows.map((line) => ({
+              saleId: sale.id,
+              salesOrderLineId: line.id,
+              productId: line.productId,
+              productCode: line.productCode,
+              productName: line.productName,
+              unitLabel: line.unitLabel,
+              quantity: line.quantity,
+              unitPrice: line.unitPrice,
+              totalAmount: line.totalAmount,
+            })),
+          )
+          .returning({
+            id: saleLines.id,
+            productId: saleLines.productId,
+            productName: saleLines.productName,
+            quantity: saleLines.quantity,
+          });
+        await transaction.insert(finishedProductStockMovements).values(
+          createdSaleLines.map((line) => ({
+            movementType: "sortie" as const,
+            productId: line.productId,
+            quantity: line.quantity,
+            saleId: sale.id,
+            saleLineId: line.id,
+            actorId: actor.id,
+            reason: `Livraison de commande · ${line.productName}`,
+          })),
+        );
       }
 
       await transaction
@@ -275,7 +394,7 @@ export async function updateSalesOrderStatus(
       return {
         message:
           parsed.data.status === "livree"
-            ? "La vente est enregistrée et le stock de balais a été débité."
+            ? "La vente est enregistrée et les stocks des produits livrés ont été débités."
             : parsed.data.status === "preparee"
               ? "La commande est prête. Le stock sera débité à la livraison."
               : "La commande a été annulée. Le stock n’a pas été modifié.",

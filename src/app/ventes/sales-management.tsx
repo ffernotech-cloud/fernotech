@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   createCustomer,
   createSalesOrder,
@@ -18,6 +18,27 @@ type CustomerRow = {
   notes: string | null;
 };
 
+type ProductRow = {
+  id: string;
+  code: string;
+  name: string;
+  unitLabel: string;
+};
+
+type ProductStockRow = ProductRow & {
+  quantity: number;
+};
+
+type OrderLineRow = {
+  productId: string;
+  productCode: string;
+  productName: string;
+  unitLabel: string;
+  quantity: number;
+  unitPrice: string;
+  totalAmount: string;
+};
+
 type OrderRow = {
   id: string;
   customerId: string;
@@ -25,8 +46,8 @@ type OrderRow = {
   orderDate: string;
   status: "en_attente" | "preparee" | "livree" | "annulee";
   quantity: number;
-  unitPrice: string;
   totalAmount: string;
+  lines: OrderLineRow[];
 };
 
 type SaleRow = {
@@ -38,6 +59,7 @@ type SaleRow = {
   quantity: number;
   totalAmount: string;
   outstandingAmount: string;
+  lines: OrderLineRow[];
 };
 
 type PaymentRow = {
@@ -169,15 +191,26 @@ function CustomerForm() {
 function SalesOrderForm({
   customers,
   defaultDate,
+  products,
 }: {
   customers: CustomerRow[];
   defaultDate: string;
+  products: ProductRow[];
 }) {
   const [state, formAction, pending] = useActionState(createSalesOrder, {});
+  const [lineCount, setLineCount] = useState(1);
   if (customers.length === 0) {
     return (
       <p className="mt-4 rounded-xl bg-[#f6f9f6] px-4 py-5 text-sm leading-6 text-[#65736a]">
         Ajoutez d’abord un client pour créer une commande.
+      </p>
+    );
+  }
+  if (products.length === 0) {
+    return (
+      <p className="mt-4 rounded-xl bg-[#f6f9f6] px-4 py-5 text-sm leading-6 text-[#65736a]">
+        Aucun produit actif. Demandez à un administrateur d’activer un produit
+        dans le catalogue.
       </p>
     );
   }
@@ -217,41 +250,110 @@ function SalesOrderForm({
           type="date"
         />
       </div>
-      <div>
-        <label className={labelClass} htmlFor="order-quantity">
-          Nombre de balais
-        </label>
-        <input
-          className={fieldClass}
-          id="order-quantity"
-          inputMode="numeric"
-          maxLength={7}
-          name="quantity"
-          placeholder="Ex. 10"
-          required
-          type="text"
-        />
-      </div>
-      <div>
-        <label className={labelClass} htmlFor="order-unit-price">
-          Prix par balai ({CURRENCY_LABEL})
-        </label>
-        <input
-          className={fieldClass}
-          id="order-unit-price"
-          inputMode="decimal"
-          maxLength={16}
-          name="unitPrice"
-          placeholder="Ex. 2500"
-          required
-          type="text"
-        />
+      <div className="sm:col-span-2 rounded-2xl border border-[#d9e4da] p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-semibold text-[#193b29]">Produits commandés</h3>
+            <p className="mt-1 text-xs leading-5 text-[#758178]">
+              Indiquez une quantité et un prix unitaire pour chaque produit.
+            </p>
+          </div>
+          <button
+            className="min-h-11 rounded-xl border border-[#286542] px-4 text-sm font-semibold text-[#286542] hover:bg-[#f0f6f1]"
+            disabled={pending || lineCount >= 20}
+            onClick={() => setLineCount((count) => Math.min(count + 1, 20))}
+            type="button"
+          >
+            Ajouter un produit
+          </button>
+        </div>
+        <div className="mt-4 grid gap-3">
+          {Array.from({ length: lineCount }, (_, index) => (
+            <fieldset
+              className="grid gap-3 rounded-xl bg-[#f6f9f6] p-4 sm:grid-cols-3"
+              key={index}
+            >
+              <legend className="px-1 text-sm font-semibold text-[#286542]">
+                Ligne {index + 1}
+              </legend>
+              <div>
+                <label
+                  className={labelClass}
+                  htmlFor={`order-product-${index}`}
+                >
+                  Produit
+                </label>
+                <select
+                  className={fieldClass}
+                  defaultValue={products[0].id}
+                  id={`order-product-${index}`}
+                  name="productId"
+                  required
+                >
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  className={labelClass}
+                  htmlFor={`order-quantity-${index}`}
+                >
+                  Quantité
+                </label>
+                <input
+                  className={fieldClass}
+                  id={`order-quantity-${index}`}
+                  inputMode="numeric"
+                  maxLength={8}
+                  name="quantity"
+                  placeholder="Ex. 10"
+                  required
+                  type="text"
+                />
+              </div>
+              <div>
+                <label
+                  className={labelClass}
+                  htmlFor={`order-unit-price-${index}`}
+                >
+                  Prix unitaire ({CURRENCY_LABEL})
+                </label>
+                <input
+                  className={fieldClass}
+                  id={`order-unit-price-${index}`}
+                  inputMode="decimal"
+                  maxLength={16}
+                  name="unitPrice"
+                  placeholder="Ex. 2500"
+                  required
+                  type="text"
+                />
+              </div>
+              {lineCount > 1 ? (
+                <button
+                  className="min-h-10 justify-self-start text-sm font-semibold text-[#9a342a] underline underline-offset-2"
+                  disabled={pending}
+                  onClick={() =>
+                    setLineCount((count) => Math.max(count - 1, 1))
+                  }
+                  type="button"
+                >
+                  Retirer la dernière ligne
+                </button>
+              ) : null}
+            </fieldset>
+          ))}
+        </div>
+        <p className="mt-4 text-xs leading-5 text-[#758178]">
+          La commande ne réserve pas les stocks. Chaque produit sera vérifié et
+          débité lors de la confirmation de livraison.
+        </p>
       </div>
       <div className="sm:col-span-2">
-        <p className="text-xs leading-5 text-[#758178]">
-          La commande ne réserve pas le stock. Les balais seront débités à la
-          confirmation de livraison.
-        </p>
         <ActionFeedback state={state} />
         <button
           className="mt-3 min-h-12 w-full rounded-xl bg-[#205d39] px-5 py-3 text-sm font-semibold text-white hover:bg-[#17472e] disabled:opacity-60 sm:w-auto"
@@ -393,9 +495,17 @@ function OrdersList({ orders }: { orders: OrderRow[] }) {
           <div>
             <h3 className="font-semibold text-[#193b29]">{order.customerName}</h3>
             <p className="mt-1 text-sm text-[#65736a]">
-              {displayDate(order.orderDate)} · {order.quantity} balais ·{" "}
-              {moneyLabel(order.totalAmount)}
+              {displayDate(order.orderDate)} · {order.quantity} unités ·{" "}
+              Total {moneyLabel(order.totalAmount)}
             </p>
+            <ul className="mt-2 grid gap-1 text-sm text-[#65736a] sm:grid-cols-2">
+              {order.lines.map((line, index) => (
+                <li key={`${order.id}-${index}`}>
+                  {line.productName} ({line.productCode}) · {line.quantity}{" "}
+                  {line.unitLabel} · {moneyLabel(line.totalAmount)}
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-[#edf5ef] px-3 py-1 text-xs font-semibold text-[#286542]">
@@ -462,9 +572,17 @@ function SalesList({
                   {sale.customerName}
                 </h3>
                 <p className="mt-1 text-sm text-[#65736a]">
-                  Vente du {displayDate(sale.saleDate)} · {sale.quantity} balais
+                  Vente du {displayDate(sale.saleDate)} · {sale.quantity} unités
                   · Total {moneyLabel(sale.totalAmount)}
                 </p>
+                <ul className="mt-2 grid gap-1 text-sm text-[#65736a] sm:grid-cols-2">
+                  {sale.lines.map((line, index) => (
+                    <li key={`${sale.id}-${index}`}>
+                      {line.productName} ({line.productCode}) · {line.quantity}{" "}
+                      {line.unitLabel}
+                    </li>
+                  ))}
+                </ul>
               </div>
               <span className="rounded-full bg-[#edf5ef] px-3 py-1 text-xs font-semibold text-[#286542]">
                 {isPaid
@@ -482,6 +600,7 @@ function SalesList({
 
 export function SalesManagement({
   customers,
+  products,
   defaultDate,
   orders,
   payments,
@@ -490,11 +609,12 @@ export function SalesManagement({
   customerReceivables,
 }: {
   customers: CustomerRow[];
+  products: ProductRow[];
   defaultDate: string;
   orders: OrderRow[];
   payments: PaymentRow[];
   sales: SaleRow[];
-  finishedStock: number;
+  finishedStock: ProductStockRow[];
   customerReceivables: CustomerReceivableRow[];
 }) {
   const receivablesByCustomer = new Map(
@@ -515,7 +635,12 @@ export function SalesManagement({
         className="grid gap-3 sm:grid-cols-3"
       >
         {[
-          { label: "Balais disponibles", value: String(finishedStock) },
+          {
+            label: "Unités disponibles",
+            value: String(
+              finishedStock.reduce((total, product) => total + product.quantity, 0),
+            ),
+          },
           { label: "Clients enregistrés", value: String(customers.length) },
           {
             label: "Créances récentes",
@@ -534,6 +659,24 @@ export function SalesManagement({
             </p>
           </article>
         ))}
+      </section>
+
+      <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-semibold text-[#193b29]">
+          Stock disponible par produit
+        </h2>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {finishedStock.map((product) => (
+            <li className="rounded-xl bg-[#f6f9f6] p-4" key={product.id}>
+              <p className="text-sm font-medium text-[#65736a]">
+                {product.name} · {product.code}
+              </p>
+              <p className="mt-2 text-xl font-semibold text-[#193b29]">
+                {product.quantity} {product.unitLabel}
+              </p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">
@@ -580,7 +723,11 @@ export function SalesManagement({
         <h2 className="text-lg font-semibold text-[#193b29]">
           Nouvelle commande
         </h2>
-        <SalesOrderForm customers={customers} defaultDate={defaultDate} />
+        <SalesOrderForm
+          customers={customers}
+          defaultDate={defaultDate}
+          products={products}
+        />
       </section>
 
       <section className="rounded-2xl border border-[#e3ebe4] bg-white p-5 shadow-sm sm:p-7">

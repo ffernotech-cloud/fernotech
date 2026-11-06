@@ -13,7 +13,7 @@ sont pas mises en cache par le service worker PWA.
 3. Installer les dépendances :
 
    ```bash
-   npm install
+   npm ci
    ```
 
 4. Lier le projet Vercel et récupérer les variables d’environnement :
@@ -24,8 +24,10 @@ sont pas mises en cache par le service worker PWA.
    npx vercel env pull .env.local --environment production
    ```
 
-   `DATABASE_URL` doit pointer vers la base Neon et `AUTH_SECRET` doit être
-   présent. Le fichier `.env.local` est privé et ne doit jamais être commité.
+   `DATABASE_URL` doit pointer vers la base PostgreSQL Neon et `AUTH_SECRET`
+   doit être configuré dans Vercel. Le fichier `.env.local` est privé et ne
+   doit jamais être commité. `NEXT_PUBLIC_CURRENCY_CODE` est facultatif
+   (XAF/FCFA par défaut).
 5. Appliquer les migrations si elles sont en attente, puis démarrer :
 
    ```bash
@@ -34,7 +36,9 @@ sont pas mises en cache par le service worker PWA.
    ```
 
    Ouvrir [http://localhost:3000](http://localhost:3000). L’administrateur
-   existant gère les comptes et rôles depuis **Utilisateurs**.
+   existant gère les comptes et rôles depuis **Utilisateurs**. Pour une base
+   neuve uniquement, créez le premier administrateur avec `npm run admin:create`;
+   cette commande refuse de créer un second compte initial.
 
 ## Déploiement
 
@@ -51,7 +55,9 @@ Il conserve uniquement l’espace de saisie statique. Les listes métier sont
 chargées par une API protégée, puis conservées dans IndexedDB sur l’appareil.
 La synchronisation repasse par l’API authentifiée et revalide les permissions,
 les bilans matière et le stock au moment de l’écriture. Les opérations de tri,
-d’intégration et de production restent transactionnelles.
+d’intégration et de production Balai restent transactionnelles. La saisie et la
+synchronisation de production multi-produits hors ligne ne sont pas encore
+disponibles; réaliser ces opérations avec une connexion.
 
 Après déploiement, ouvrir une session Responsable d’atelier ou Administrateur,
 visiter **Préparer l’espace hors ligne** une fois avec une connexion, puis

@@ -8,6 +8,8 @@ describe("resolveDashboardPeriod", () => {
     ).toEqual({
       from: "2026-02-01",
       to: "2026-02-28",
+      year: null,
+      mode: "custom",
       error: null,
     });
   });
@@ -18,7 +20,27 @@ describe("resolveDashboardPeriod", () => {
         from: "2026-02-03",
         to: "2026-02-28",
       }),
-    ).toEqual({ from: "2026-02-03", to: "2026-02-28", error: null });
+    ).toEqual({
+      from: "2026-02-03",
+      to: "2026-02-28",
+      year: null,
+      mode: "custom",
+      error: null,
+    });
+  });
+
+  it("resolves full year when year parameter is provided", () => {
+    expect(
+      resolveDashboardPeriod({
+        year: "2026",
+      }),
+    ).toEqual({
+      from: "2026-01-01",
+      to: "2026-12-31",
+      year: "2026",
+      mode: "year",
+      error: null,
+    });
   });
 
   it("shows an error and falls back to the current month for invalid dates", () => {
@@ -30,6 +52,23 @@ describe("resolveDashboardPeriod", () => {
     ).toMatchObject({
       from: "2026-03-01",
       to: "2026-03-03",
+      year: null,
+      mode: "custom",
+      error: expect.any(String),
+    });
+  });
+
+  it("shows an error and falls back to the current month for invalid year", () => {
+    expect(
+      resolveDashboardPeriod(
+        { year: "1899" },
+        new Date("2026-03-03T12:00:00.000Z"),
+      ),
+    ).toMatchObject({
+      from: "2026-03-01",
+      to: "2026-03-03",
+      year: null,
+      mode: "custom",
       error: expect.any(String),
     });
   });

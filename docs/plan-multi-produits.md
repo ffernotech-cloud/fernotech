@@ -13,8 +13,19 @@ appliquée à Neon et le commit `3b4ff6c` est déployé en production.
 Étape production multi-lignes : le code est prêt et la migration additive
 `0006` est appliquée à Neon. Le backfill a été vérifié sans variation des
 quantités ni des coûts historiques; tests, lint, TypeScript et build sont
-passés. Le déploiement et la validation manuelle restent à faire. Les commandes
-et ventes restent volontairement mono-Balai jusqu'à l'étape suivante.
+passés. Le déploiement et la validation manuelle restent à faire.
+
+Étape commandes et ventes multi-produits : le code (lignes de commande, lignes
+de vente, contrôles de stock fini par produit, débits atomiques à la livraison,
+exports CSV et sauvegarde) et la migration additive `0007` avec son backfill
+historique et son trigger de compatibilité sont livrés; `0007` est appliquée à
+Neon. Les tests ciblés passent. Le déploiement et la validation manuelle restent
+à faire.
+
+Le tableau de bord multi-produits est également implémenté : filtre par année,
+conversion des poids en tonnes, indicateurs par produit et marge estimée par
+produit calculée à partir de son coût de production historique. Les tests de
+calcul et de période passent; validation en production encore requise.
 
 ## Cible fonctionnelle
 
@@ -145,12 +156,17 @@ revalider le catalogue, les versions techniques et les stocks côté serveur.
    et stock fini par produit : code livré et migration `0006` appliquée à Neon;
    contrôles historiques passés, déploiement et validation manuelle restent à
    faire.
-3. Commandes et ventes multi-produits, avec sorties de stock par ligne à la
-   livraison.
-4. Tableau de bord : filtre Année/année précise, équivalents en tonnes et
-   indicateurs détaillés par produit.
-5. Déployer l'étape production, valider manuellement les parcours et reprendre
-   ensuite les commandes et ventes multi-produits.
+3. Commandes et ventes multi-produits : code et migration `0007` appliqués;
+   tests ciblés passés. La validation complète en navigateur reste à faire.
+4. Tableau de bord multi-produits : code et tests de période/calcul réalisés;
+   valider les années, tonnes, marges et stocks par produit en production.
+5. Vérifier les exports CSV, le rapport PDF, la sauvegarde administrateur et
+   l'installation PWA; terminer les guides utilisateur et d'installation,
+   déployer puis faire la validation manuelle avant le commit de l'étape.
+
+La saisie hors ligne de production reste limitée au flux historique Balai; son
+évolution vers des lignes multi-produits avec fiches techniques reste à traiter
+séparément. Les ventes et règlements hors ligne ne sont pas disponibles.
 
 ## Décisions validées
 

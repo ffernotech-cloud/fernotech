@@ -11,6 +11,14 @@ const dateString = z
     );
   }, "La date saisie n’existe pas.");
 
+const yearString = z
+  .string()
+  .regex(/^\d{4}$/, "L’année doit comporter 4 chiffres.")
+  .refine((value) => {
+    const num = Number(value);
+    return num >= 2000 && num <= 2100;
+  }, "L’année sélectionnée est invalide.");
+
 const periodSchema = z
   .object({
     from: dateString,
@@ -24,10 +32,12 @@ const periodSchema = z
 export type DashboardPeriod = {
   from: string;
   to: string;
+  year: string | null;
+  mode: "custom" | "year";
   error: string | null;
 };
 
-function doualaDate(date: Date): string {
+export function doualaDate(date: Date): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
     day: "2-digit",
     month: "2-digit",
@@ -40,18 +50,52 @@ function doualaDate(date: Date): string {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
+export function currentDoualaYear(now: Date = new Date()): string {
+  return doualaDate(now).slice(0, 4);
+}
+
 function defaultPeriod(now: Date): Pick<DashboardPeriod, "from" | "to"> {
   const to = doualaDate(now);
   return { from: `${to.slice(0, 7)}-01`, to };
 }
 
 export function resolveDashboardPeriod(
-  searchParams: { from?: string | string[]; to?: string | string[] },
+  searchParams: {
+    from?: string | string[];
+    to?: string | string[];
+    year?: string | string[];
+  },
   now = new Date(),
 ): DashboardPeriod {
   const defaultValues = defaultPeriod(now);
+
+  const rawYear = Array.isArray(searchParams.year)
+    ? searchParams.year[0]
+    : searchParams.year;
+  if (rawYear !== undefined && rawYear !== "") {
+    const result = yearString.safeParse(rawYear);
+    if (!result.success) {
+      return {
+        ...defaultValues,
+        year: null,
+        mode: "custom",
+        error:
+          result.error.issues[0]?.message ??
+          "L’année sélectionnée n’est pas valide.",
+      };
+    }
+    const year = result.data;
+    return {
+      from: `${year}-01-01`,
+      to: `${year}-12-31`,
+      year,
+      mode: "year",
+      error: null,
+    };
+  }
+
   if (searchParams.from === undefined && searchParams.to === undefined) {
-    return { ...defaultValues, error: null };
+    return { ...defaultValues, year: null, mode: "custom", error: null };
   }
 
   const from = Array.isArray(searchParams.from)
@@ -62,9 +106,11 @@ export function resolveDashboardPeriod(
   if (!result.success) {
     return {
       ...defaultValues,
+      year: null,
+      mode: "custom",
       error: result.error.issues[0]?.message ?? "La période saisie est invalide.",
     };
   }
 
-  return { ...result.data, error: null };
+  return { ...result.data, year: null, mode: "custom", error: null };
 }

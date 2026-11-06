@@ -13,15 +13,20 @@ utilisez un appareil partagé.
 2. **Tri et stock matière** : pour chaque apport reçu, saisissez le poids accepté
    et rejeté. Leur somme doit correspondre au poids reçu; tout rejet doit avoir
    un motif. Intégrez ensuite l’apport au stock. Seul le poids accepté est ajouté.
-3. **Production** : indiquez le plastique utilisé, les bandes préparées, les
-   pertes motivées, le nombre de balais et les coûts. Le système vérifie le bilan
-   matière et le stock avant de fabriquer.
-4. **Ventes et règlements** : créez le client et la commande, préparez-la puis
-   livrez-la. La livraison débite le stock fini. Saisissez les règlements partiels
-   ou complets; les créances sont calculées automatiquement.
-5. **Tableau de bord** : choisissez une période pour analyser collecte,
-   production, ventes, recettes et impact. Les soldes de stock restent les soldes
-   actuels.
+3. **Production** : créez un ordre avec une ligne par produit (Balai, Brosse,
+   Brosse à laver avec manche, File à linge, Pavé ou autre produit actif).
+   Choisissez la fiche technique, renseignez les quantités et bandes, puis
+   ventilez les coûts par ligne. Le total des bandes et pertes doit égaler la
+   matière utilisée. Le système vérifie le stock matière et crédite chaque
+   produit fabriqué.
+4. **Ventes et règlements** : créez le client et une commande contenant une ou
+   plusieurs lignes produits. Préparez-la puis livrez-la; chaque stock produit
+   est vérifié puis débité à la livraison. Saisissez les règlements partiels ou
+   complets; les créances sont calculées automatiquement.
+5. **Tableau de bord** : choisissez une année précise ou une période personnalisée.
+   Consultez les poids en kg et tonnes, les coûts, ventes, marges estimées et
+   stocks pour chaque produit. Les soldes de stock affichés sont les soldes
+   actuels, même si une période passée est sélectionnée.
 
 ## Exports et rapport
 
@@ -40,8 +45,9 @@ Cette fonction est réservée à l’Administrateur et au Responsable d’atelie
    couverture. La préparation conserve sur cet appareil les collecteurs actifs,
    les 500 derniers apports encore à traiter et le stock matière courant.
 3. Sans réseau, enregistrez un collecteur, un apport, un tri, une intégration ou
-   une fabrication dans cet espace. Chaque saisie est conservée dans la file
-   locale; un indicateur montre son état.
+   une fabrication Balai dans cet espace. La production multi-produits doit
+   encore être enregistrée en ligne. Chaque saisie hors ligne disponible est
+   conservée dans la file locale; un indicateur montre son état.
 4. Au retour du réseau, gardez l’espace ouvert et reconnectez-vous avec le même
    compte. La file est envoyée dans l’ordre et se met à jour automatiquement.
    Les fabrications sont revérifiées avec le stock serveur. En cas de conflit,

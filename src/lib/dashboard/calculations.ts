@@ -52,42 +52,131 @@ export function sumKilograms(values: ReadonlyArray<string>): string {
   return `${whole}.${fraction}`;
 }
 
-export function calculateAverageProductionCostPerBroom(
+export function kilogramsToTonnes(kilograms: string | number): string {
+  const normalized =
+    typeof kilograms === "string"
+      ? kilograms.replace(",", ".")
+      : String(kilograms);
+  const match = /^(\d+)(?:\.(\d+))?$/.exec(normalized);
+  if (!match) {
+    throw new Error("Un poids en kilogrammes est invalide.");
+  }
+  const wholeKg = BigInt(match[1]);
+  const fractionStr = (match[2] ?? "").padEnd(3, "0").slice(0, 3);
+  const grams = BigInt(fractionStr);
+  const subGram = (match[2] ?? "").slice(3);
+  const roundGram =
+    subGram.length > 0 && Number(subGram[0]) >= 5 ? BigInt(1) : BigInt(0);
+  const totalGrams = grams + roundGram;
+  const roundedKg =
+    wholeKg + (totalGrams >= BigInt(500) ? BigInt(1) : BigInt(0));
+  const wholeTonnes = roundedKg / BigInt(1000);
+  const fractionTonnes = (roundedKg % BigInt(1000)).toString().padStart(3, "0");
+  return `${wholeTonnes}.${fractionTonnes}`;
+}
+
+export function calculateAverageUnitProductionCost(
   totalCost: string,
-  broomsProduced: number,
+  quantityProduced: number,
 ): string | null {
-  assertNonNegativeCount(broomsProduced, "Le nombre de balais fabriqués");
-  if (broomsProduced === 0) {
+  assertNonNegativeCount(quantityProduced, "La quantité fabriquée");
+  if (quantityProduced === 0) {
     return null;
   }
 
   const totalCents = amountToCents(totalCost);
   const averageCents =
-    (totalCents + BigInt(Math.floor(broomsProduced / 2))) /
-    BigInt(broomsProduced);
+    (totalCents + BigInt(Math.floor(quantityProduced / 2))) /
+    BigInt(quantityProduced);
   return centsToAmount(averageCents);
+}
+
+export function calculateAverageProductionCostPerBroom(
+  totalCost: string,
+  broomsProduced: number,
+): string | null {
+  return calculateAverageUnitProductionCost(totalCost, broomsProduced);
+}
+
+export type ProductSummaryInput = {
+  product: {
+    id: string;
+    code: string;
+    name: string;
+    unitLabel: string;
+    isActive: boolean;
+  };
+  producedQuantity: number;
+  producedCost: string;
+  soldQuantity: number;
+  revenue: string;
+  currentStock: number;
+  historicalProductionCost: string;
+  historicalProducedQuantity: number;
+};
+
+export type ProductDashboardSummary = {
+  productId: string;
+  productCode: string;
+  productName: string;
+  unitLabel: string;
+  isActive: boolean;
+  quantityProduced: number;
+  productionCost: string;
+  averageProductionCost: string | null;
+  quantitySold: number;
+  revenue: string;
+  estimatedMargin: string | null;
+  currentStock: number;
+};
+
+export function calculateProductSummaries(
+  inputs: ReadonlyArray<ProductSummaryInput>,
+): ProductDashboardSummary[] {
+  return inputs.map((item) => ({
+    productId: item.product.id,
+    productCode: item.product.code,
+    productName: item.product.name,
+    unitLabel: item.product.unitLabel,
+    isActive: item.product.isActive,
+    quantityProduced: item.producedQuantity,
+    productionCost: item.producedCost,
+    averageProductionCost: calculateAverageUnitProductionCost(
+      item.producedCost,
+      item.producedQuantity,
+    ),
+    quantitySold: item.soldQuantity,
+    revenue: item.revenue,
+    estimatedMargin: calculateEstimatedSalesMargin(
+      item.revenue,
+      item.soldQuantity,
+      item.historicalProductionCost,
+      item.historicalProducedQuantity,
+    ),
+    currentStock: item.currentStock,
+  }));
 }
 
 export function calculateEstimatedSalesMargin(
   revenue: string,
-  broomsSold: number,
+  unitsSold: number,
   historicalProductionCost: string,
-  historicalBroomsProduced: number,
+  historicalUnitsProduced: number,
 ): string | null {
-  assertNonNegativeCount(broomsSold, "Le nombre de balais vendus");
+  assertNonNegativeCount(unitsSold, "La quantité vendue");
   assertNonNegativeCount(
-    historicalBroomsProduced,
-    "Le nombre de balais fabriqués",
+    historicalUnitsProduced,
+    "La quantité historiquement fabriquée",
   );
-  if (historicalBroomsProduced === 0) {
+  if (historicalUnitsProduced === 0) {
     return null;
   }
 
-  const costOfSoldBrooms =
-    (amountToCents(historicalProductionCost) * BigInt(broomsSold) +
-      BigInt(Math.floor(historicalBroomsProduced / 2))) /
-    BigInt(historicalBroomsProduced);
-  return centsToAmount(amountToCents(revenue) - costOfSoldBrooms);
+  const estimatedCostOfSoldUnits =
+    (amountToCents(historicalProductionCost) * BigInt(unitsSold) +
+      BigInt(Math.floor(historicalUnitsProduced / 2))) /
+    BigInt(historicalUnitsProduced);
+  return centsToAmount(amountToCents(revenue) - estimatedCostOfSoldUnits);
 }
 
 export function calculateOutstandingReceivables(

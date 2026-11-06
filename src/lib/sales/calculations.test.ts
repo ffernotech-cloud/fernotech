@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   availableFinishedProductStock,
+  calculateSalesOrderTotals,
   calculateSalesTotal,
+  finishedProductStockById,
+  finishedProductsAreSufficient,
   finishedStockIsSufficient,
   outstandingReceivable,
   paymentFitsReceivable,
@@ -26,6 +29,44 @@ describe("calculs de ventes et stock fini", () => {
     expect(finishedStockIsSufficient(movements, 16)).toBe(false);
   });
 
+  it("vérifie chaque produit demandé contre son propre stock", () => {
+    const movements = [
+      {
+        productId: "balai",
+        movementType: "entree" as const,
+        quantity: 10,
+      },
+      {
+        productId: "brosse",
+        movementType: "entree" as const,
+        quantity: 3,
+      },
+      {
+        productId: "balai",
+        movementType: "sortie" as const,
+        quantity: 2,
+      },
+    ];
+    expect(finishedProductStockById(movements)).toEqual(
+      new Map([
+        ["balai", 8],
+        ["brosse", 3],
+      ]),
+    );
+    expect(
+      finishedProductsAreSufficient(movements, [
+        { productId: "balai", quantity: 8 },
+        { productId: "brosse", quantity: 3 },
+      ]),
+    ).toBe(true);
+    expect(
+      finishedProductsAreSufficient(movements, [
+        { productId: "balai", quantity: 8 },
+        { productId: "brosse", quantity: 4 },
+      ]),
+    ).toBe(false);
+  });
+
   it("calcule une créance après plusieurs règlements partiels", () => {
     expect(outstandingReceivable("15000.00", ["5000.00", "2500.00"])).toBe(
       "7500.00",
@@ -44,6 +85,19 @@ describe("calculs de ventes et stock fini", () => {
 
   it("multiplie la quantité par le prix sans perdre les centimes", () => {
     expect(calculateSalesTotal(3, "1250.50")).toBe("3751.50");
+  });
+
+  it("calcule le montant et le prix moyen d’une commande multi-produits", () => {
+    expect(
+      calculateSalesOrderTotals([
+        { quantity: 2, unitPrice: "1250.50" },
+        { quantity: 3, unitPrice: "500" },
+      ]),
+    ).toEqual({
+      quantity: 5,
+      totalAmount: "4001.00",
+      averageUnitPrice: "800.20",
+    });
   });
 
   it("retourne un solde nul pour une créance entièrement réglée", () => {

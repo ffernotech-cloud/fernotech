@@ -28,9 +28,6 @@ function formatKilograms(value: number): string {
   return `${numberFormat.format(value)} kg`;
 }
 
-function formatBrooms(value: number): string {
-  return numberFormat.format(value);
-}
 
 export function DashboardCharts({
   data,
@@ -110,9 +107,9 @@ export function DashboardCharts({
         </article>
         <article className="rounded-2xl border border-[#e3ebe4] bg-white p-4 shadow-sm sm:p-5">
           <h3 className="mb-4 text-sm font-semibold text-[#264432]">
-            Balais fabriqués et vendus
+            Produits fabriqués et vendus (unités)
           </h3>
-          <div aria-label="Courbes mensuelles des balais fabriqués et vendus" role="img">
+          <div aria-label="Courbes mensuelles des produits fabriqués et vendus" role="img">
             <ResponsiveContainer height={260} minWidth={0} width="100%">
               <LineChart
                 data={chartData}
@@ -132,7 +129,7 @@ export function DashboardCharts({
                   tickFormatter={(value: number) => numberFormat.format(value)}
                 />
                 <Tooltip
-                  formatter={(value) => formatBrooms(Number(value))}
+                  formatter={(value) => `${numberFormat.format(Number(value))} unité(s)`}
                   labelStyle={{ color: "#193b29" }}
                   contentStyle={{
                     borderColor: "#d9e7dc",
@@ -142,7 +139,7 @@ export function DashboardCharts({
                 <Legend />
                 <Line
                   activeDot={{ r: 5 }}
-                  dataKey="producedBrooms"
+                  dataKey="producedUnits"
                   name="Fabriqués"
                   stroke="#2d8a55"
                   strokeWidth={3}
@@ -150,7 +147,7 @@ export function DashboardCharts({
                 />
                 <Line
                   activeDot={{ r: 5 }}
-                  dataKey="soldBrooms"
+                  dataKey="soldUnits"
                   name="Vendus"
                   stroke="#556ac7"
                   strokeWidth={3}

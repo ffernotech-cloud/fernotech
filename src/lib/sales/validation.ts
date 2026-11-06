@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { calculateSalesOrderTotals } from "@/lib/sales/calculations";
 
 const optionalText = (maximum: number) =>
   z
@@ -28,29 +29,40 @@ export const createCustomerSchema = z.object({
   notes: optionalText(1000),
 });
 
+const salesOrderLineSchema = z.object({
+  productId: z.uuid("Sélectionnez un produit valide."),
+  quantity: z
+      .string()
+      .trim()
+      .regex(/^\d{1,8}$/, "Saisissez une quantité entière.")
+      .transform(Number)
+      .refine(
+        (value) => Number.isSafeInteger(value) && value > 0,
+        "La quantité doit être supérieure à 0.",
+      ),
+  unitPrice: positiveAmount,
+});
+
 export const createSalesOrderSchema = z
   .object({
     customerId: z.uuid("Sélectionnez un client valide."),
     orderDate: z.iso.date("Saisissez une date de commande valide."),
-    quantity: z
-      .string()
-      .trim()
-      .regex(/^\d{1,7}$/, "Saisissez une quantité entière de balais.")
-      .transform(Number)
-      .refine((value) => value > 0, "La quantité doit être supérieure à 0."),
-    unitPrice: positiveAmount,
+    lines: z
+      .array(salesOrderLineSchema)
+      .min(1, "Ajoutez au moins un produit à cette commande.")
+      .max(20, "Une commande ne peut pas dépasser 20 lignes de produits."),
   })
   .superRefine((value, context) => {
-    const [whole, fraction = ""] = value.unitPrice.split(".");
-    const totalCents =
-      BigInt(value.quantity) *
-      (BigInt(whole) * BigInt(100) + BigInt(fraction.padEnd(2, "0")));
-    if (totalCents > BigInt("99999999999999")) {
+    try {
+      calculateSalesOrderTotals(value.lines);
+    } catch (error) {
       context.addIssue({
         code: "custom",
         message:
-          "Le montant total de la commande dépasse la limite autorisée.",
-        path: ["quantity"],
+          error instanceof Error
+            ? error.message
+            : "Le montant total de la commande est invalide.",
+        path: ["lines"],
       });
     }
   });

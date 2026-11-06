@@ -8,11 +8,10 @@ produits finis. Le catalogue cible comprend Balai, Brosse, Brosse à laver avec
 manche, File à linge et Pavé. Interface mobile-first, boutons faciles à
 utiliser et formulaires courts.
 
-Le catalogue multi-produits est en place. La production multi-lignes et les
-stocks finis par produit sont implémentés et migrés dans Neon; déploiement et
-validation manuelle restent à terminer. Les commandes et ventes restent
-provisoirement centrées sur le balai. L’évolution validée et ses choix sont
-suivis dans
+Le catalogue multi-produits, la production multi-lignes et les commandes et
+ventes multi-produits sont en place et migrés dans Neon (migrations 0005, 0006 et
+0007 appliquées). Déploiement et validation manuelle restent à finaliser.
+L’évolution validée et ses choix sont suivis dans
 [docs/plan-multi-produits.md](./docs/plan-multi-produits.md); les données
 techniques propres à chaque produit restent à fournir et ne doivent pas être
 inventées.
@@ -127,6 +126,16 @@ garantir la compatibilité avec les clients existants; les nouvelles données
 détaillées sont portées par les lignes de production. La migration `0006` est
 appliquée à Neon et les quantités, coûts et soldes ont été comparés avant/après.
 Ne pas retirer les champs historiques avant la fin de la transition.
+
+## Limites du mode hors ligne
+
+Le service worker conserve uniquement l’espace de saisie statique; les pages
+privées et réponses API ne sont pas mises en cache. Les collecteurs, apports,
+tris, intégrations et fabrications Balai historiques peuvent être préparés
+localement puis synchronisés après reconnexion avec le même compte. La
+production multi-produits, les commandes et les règlements nécessitent une
+connexion. Les stocks affichés hors ligne sont provisoires; le serveur reste
+la référence. Voir [docs/guide-utilisateur.md](./docs/guide-utilisateur.md).
 
 ## Commandes
 

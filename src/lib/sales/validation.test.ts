@@ -20,20 +20,22 @@ describe("validation des ventes", () => {
 
   it("refuse une quantité invalide ou un prix nul", () => {
     const customerId = "b0000000-0000-4000-8000-000000000001";
+    const productId = "b0000000-0000-4000-8000-000000000002";
     const common = { customerId, orderDate: "2026-10-15" };
     expect(
       createSalesOrderSchema.safeParse({
         ...common,
-        quantity: "0",
-        unitPrice: "1000",
+        lines: [{ productId, quantity: "0", unitPrice: "1000" }],
       }).success,
     ).toBe(false);
     expect(
       createSalesOrderSchema.safeParse({
         ...common,
-        quantity: "3",
-        unitPrice: "0",
+        lines: [{ productId, quantity: "3", unitPrice: "0" }],
       }).success,
+    ).toBe(false);
+    expect(
+      createSalesOrderSchema.safeParse({ ...common, lines: [] }).success,
     ).toBe(false);
   });
 
@@ -42,10 +44,36 @@ describe("validation des ventes", () => {
       createSalesOrderSchema.safeParse({
         customerId: "b0000000-0000-4000-8000-000000000001",
         orderDate: "2026-10-15",
-        quantity: "10000000",
-        unitPrice: "999999999999.99",
+        lines: [
+          {
+            productId: "b0000000-0000-4000-8000-000000000002",
+            quantity: "10000000",
+            unitPrice: "999999999999.99",
+          },
+        ],
       }).success,
     ).toBe(false);
+  });
+
+  it("accepte une commande répartie entre plusieurs produits", () => {
+    expect(
+      createSalesOrderSchema.safeParse({
+        customerId: "b0000000-0000-4000-8000-000000000001",
+        orderDate: "2026-10-15",
+        lines: [
+          {
+            productId: "b0000000-0000-4000-8000-000000000002",
+            quantity: "2",
+            unitPrice: "1250,50",
+          },
+          {
+            productId: "b0000000-0000-4000-8000-000000000003",
+            quantity: "3",
+            unitPrice: "500",
+          },
+        ],
+      }).success,
+    ).toBe(true);
   });
 
   it("valide une livraison seulement avec un état autorisé", () => {
